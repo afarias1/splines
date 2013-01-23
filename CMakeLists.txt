@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 2.8.0)
 
-#-std=c++0x option allows assignment of structs
-#using ={....} notation without warning. 
-#Handy for xyz, rgb tuples.
 set(CMAKE_CXX_FLAGS "-g -Wall")
 
+#find PNG include directories/libraries
+#/usr/share/cmake-2.8/Modules/FindPNG.cmake
 find_package(PNG REQUIRED)
 
 #get symlink_data macro
