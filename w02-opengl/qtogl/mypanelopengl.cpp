@@ -14,6 +14,8 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     vertices[0] = QVector2D(-1.0, -1.0);
     vertices[1] = QVector2D(0.0, 1.0);
     vertices[2] = QVector2D(1.0, -1.0);
+
+
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
@@ -24,6 +26,8 @@ MyPanelOpenGL::~MyPanelOpenGL(){
 void MyPanelOpenGL::initializeGL()
 {
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    createShaders();
+    createVBOs();
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
