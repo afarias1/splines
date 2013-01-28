@@ -25,4 +25,4 @@ ADD_EXECUTABLE(colorTest ${SRC} ${MYQTFILES})
 
 TARGET_LINK_LIBRARIES(colorTest ${EXT_LIBS})
 
-symlink_data(lab1_data *.jpg)
+#symlink_data(proj1_data *.png)
