@@ -2,10 +2,6 @@
 
 include_directories(PNG_INCLUDE_DIRS)
 
-#-std=c++0x allows assignment of structs using = {...} syntax
-set(CMAKE_CXX_FLAGS "-g -Wall -std=c++0x")
-
-
 #Header files for our rgb library
 set(RGBHDRS rgbColor.h rgbImage.h png_reader.h png_writer.h)
 #Source files for our rgb library

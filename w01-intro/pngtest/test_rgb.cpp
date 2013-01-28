@@ -8,9 +8,9 @@ int main(){
   RGBColor green(0,255,0);
   RGBColor clr;
   int r,c;
-  clr={0,128,128};
+  clr=RGBColor(0,128,128);
   RGBImage img(512,512,green);
-  img(10,10)={5,5,5};
+  img(10,10)=RGBColor(5,5,5);
   try{
     img(-1,700);
   }
