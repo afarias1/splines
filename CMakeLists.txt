@@ -23,5 +23,6 @@ SET(EXT_LIBS ${QT_LIBRARIES} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 include(${CMAKE_SOURCE_DIR}/cmake_modules/helpers.cmake)
 
 add_subdirectory(w01-intro)
+add_subdirectory(w02-opengl)
 add_subdirectory(projects)
 
