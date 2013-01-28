@@ -21,7 +21,12 @@ set(SRC
   mypanelopengl.cpp
 )
 
-ADD_EXECUTABLE(qtogl ${SRC} ${MYQTFILES})
+set(SHADERS
+  vshader.glsl
+  fshader.glsl
+)
+
+ADD_EXECUTABLE(qtogl ${SRC} ${MYQTFILES} ${SHADERS})
 
 TARGET_LINK_LIBRARIES(qtogl ${EXT_LIBS})
 

@@ -25,7 +25,7 @@ private:
 
 
     unsigned int numVertices;
-    QVector2D *vertices;
+    QVector4D *vertices;
 
     QGLBuffer *vboVertices;
 

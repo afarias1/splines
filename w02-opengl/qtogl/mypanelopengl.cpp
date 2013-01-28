@@ -1,6 +1,5 @@
 #include "mypanelopengl.h"
 #include <cmath>
-#include <GL/glu.h>
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     QGLWidget(parent) {
@@ -8,12 +7,13 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     shaderProgram=NULL;
     vertexShader=NULL;
     fragmentShader=NULL;
+    vboVertices = NULL;
 
     numVertices = 3;
-    vertices = new QVector2D[3];
-    vertices[0] = QVector2D(-1.0, -1.0);
-    vertices[1] = QVector2D(0.0, 1.0);
-    vertices[2] = QVector2D(1.0, -1.0);
+    vertices = new QVector4D[3];
+    vertices[0] = QVector4D(-1.0, -1.0, 0., 1.);
+    vertices[1] = QVector4D(0.0, 1.0, 0., 1.);
+    vertices[2] = QVector4D(1.0, -1.0, 0., 1.);
 
 
 }
@@ -37,7 +37,8 @@ void MyPanelOpenGL::resizeGL(int w, int h)
 
 void MyPanelOpenGL::paintGL(){
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glClear(GL_COLOR_BUFFER_BIT);
 
     if(!vboVertices){
         return;
@@ -47,9 +48,9 @@ void MyPanelOpenGL::paintGL(){
     vboVertices->bind();
 
     shaderProgram->enableAttributeArray("vPosition");
-    shaderProgram->setAttributeBuffer("vPosition", GL_FLOAT, 0, 2, 0);
+    shaderProgram->setAttributeBuffer("vPosition", GL_FLOAT, 0, 4, 0);
 
-    glDrawElements(GL_TRIANGLES, 1, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_TRIANGLES, 0, numVertices);
 
     glFlush();
 
@@ -71,13 +72,16 @@ void MyPanelOpenGL::createShaders(){
         qWarning() << fragmentShader->log();
     }
 
-    shaderProgram = new QGLShaderProgram;
+    shaderProgram = new QGLShaderProgram();
     shaderProgram->addShader(vertexShader);
     shaderProgram->addShader(fragmentShader);
 
     if(!shaderProgram->link()){
         qWarning() << shaderProgram->log() << endl;
     }
+
+    //QMessageBox::information((QWidget*)parent(), "debug", "iShade");
+
 }
 
 void MyPanelOpenGL::destroyShaders(){
@@ -98,9 +102,10 @@ void MyPanelOpenGL::createVBOs(){
     vboVertices->create();
     vboVertices->bind();
     vboVertices->setUsagePattern(QGLBuffer::StaticDraw);
-    vboVertices->allocate(vertices, numVertices*sizeof(QVector2D));
+    vboVertices->allocate(vertices, numVertices*sizeof(QVector4D));
 
     delete [] vertices; vertices=NULL;
+    //QMessageBox::information((QWidget*)parent(), "debug", "iVBO");
 }
 
 void MyPanelOpenGL::destroyVBOs(){
