@@ -7,7 +7,7 @@ using namespace std;
 int main(){
   RGBColor green(0,255,0);
   RGBColor clr;
-  int r,c;
+  //int r,c;
   clr=RGBColor(0,128,128);
   RGBImage img(512,512,green);
   img(10,10)=RGBColor(5,5,5);
