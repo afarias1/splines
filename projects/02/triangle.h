@@ -20,7 +20,10 @@ class Triangle : public Drawable {
      void draw(QGLShaderProgram* prog);
 
      void move(float dx, float dy);
-   
+  
+		 /* TODO: implement a real version in triangle.cpp */ 
+     bool contains(const vec2 &pt){ return false;}
+
    private:
      //Endpoints of Triangle in ccw order
      vec2 pts[3];

@@ -44,12 +44,24 @@ class Drawable {
      */
     virtual void move(float dx, float dy) = 0;
 
+    /* return true if shape contains point pt, false otherwise
+     * Pure virtual. Must be implemented in derived class
+     */
+    virtual bool contains(const vec2& pt) = 0;
+
     /* Get current color of object */
     inline vec4 getColor() const { return m_color; }
+
+    /* Hide shape so that it is not drawn */
+    inline void hide(){ m_visible=false; }
+
+    /* return true if visibile, false otherwise */
+    inline bool isVisible(){ return m_visible; }
 
     protected:
         vec4 m_color;
         QGLBuffer *m_vbo;
+        bool m_visible;
 
 };
 
