@@ -25,5 +25,6 @@ include(${CMAKE_SOURCE_DIR}/cmake_modules/helpers.cmake)
 add_subdirectory(w01-intro)
 add_subdirectory(w02-opengl)
 add_subdirectory(w03-geometry)
+add_subdirectory(w04-colorVBO)
 add_subdirectory(projects)
 
