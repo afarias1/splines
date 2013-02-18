@@ -6,7 +6,7 @@ using std::cout;
 using std::endl;
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
-    QGLWidget(parent),angles(0.,0.,0.) {
+    QGLWidget(parent), angles(0.,0.,0.) {
 
     shaderProgram=NULL;
     vertexShader=NULL;
@@ -52,25 +52,24 @@ void MyPanelOpenGL::resizeGL(int w, int h)
     glViewport(0,0,w, h);
 }
 
-qreal MyPanelOpenGL::wrap(qreal amt){
-    if (amt > 360.){
-        return amt - 360.;
+void MyPanelOpenGL::paintGL(){
+    /* clear both color and depth buffer */
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    if(!vboData){
+        return;
     }
-    if (amt < 0.){
-        return amt + 360.;
-    }
-    return amt;
+
+    shaderProgram->setUniformValue("theta", angles);
+    glDrawArrays(GL_TRIANGLES, 0, numVertices);
+
+    glFlush();
+
+
+    //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
 }
 
-void MyPanelOpenGL::updateAngles(int idx, qreal amt){
-    if(idx == 0){
-        angles.setX(angles.x()+amt);
-    }else if(idx == 1){
-        angles.setY(angles.y()+amt);
-    }else if(idx == 2){
-        angles.setZ(angles.z()+amt);
-    }
-}
 
 void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
 {
@@ -93,81 +92,6 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
         QWidget::keyPressEvent(event); /* pass to base class */
     }
     updateGL();
-}
-
-void MyPanelOpenGL::paintGL(){
-    /* clear both color and depth buffer */
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-    if(!vboData){
-        return;
-    }
-
-    shaderProgram->setUniformValue("theta", angles);
-    glDrawArrays(GL_TRIANGLES, 0, numVertices);
-
-    glFlush();
-
-
-    //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
-}
-
-void MyPanelOpenGL::createShaders(){
-
-    destroyShaders(); //get rid of any old shaders
-
-    vertexShader = new QGLShader(QGLShader::Vertex);
-    if (!vertexShader->compileSourceFile("vshader.glsl")){
-        qWarning() << vertexShader->log();
-    }
-
-    fragmentShader = new QGLShader(QGLShader::Fragment);
-    if(!fragmentShader->compileSourceFile("fshader.glsl")){
-        qWarning() << fragmentShader->log();
-    }
-
-    shaderProgram = new QGLShaderProgram();
-    shaderProgram->addShader(vertexShader);
-    shaderProgram->addShader(fragmentShader);
-
-    if(!shaderProgram->link()){
-        qWarning() << shaderProgram->log() << endl;
-    }
-}
-
-void MyPanelOpenGL::destroyShaders(){
-
-    delete vertexShader; vertexShader=NULL;
-    delete fragmentShader; fragmentShader=NULL;
-
-    if(shaderProgram){
-        shaderProgram->release();
-        delete shaderProgram; shaderProgram=NULL;
-    }
-}
-
-void MyPanelOpenGL::createVBO(){
-    destroyVBO(); //get rid of any old buffers
-
-    vboData = new QGLBuffer(QGLBuffer::VertexBuffer);
-    vboData->create();
-    vboData->bind();
-    vboData->setUsagePattern(QGLBuffer::StaticDraw);
-
-    vboData->allocate(numVertices*(sizeof(point4)+sizeof(color4)));
-    vboData->write(0,points,numVertices*sizeof(point4));
-    vboData->write(numVertices*sizeof(point4),colors,numVertices*sizeof(color4));
-
-    delete [] points; points=NULL;
-    delete [] colors; colors=NULL;
-}
-
-void MyPanelOpenGL::destroyVBO(){
-    if (vboData){
-        vboData->release();
-        delete vboData; vboData=NULL;
-    }
 }
 
 void MyPanelOpenGL::makeCube(){
@@ -218,3 +142,84 @@ void MyPanelOpenGL::quad(int a, int b, int c, int d){
     colors[Index] = vertex_colors[c]; points[Index] = vertices[c]; Index++;
     colors[Index] = vertex_colors[d]; points[Index] = vertices[d]; Index++;
 }
+
+void MyPanelOpenGL::updateAngles(int idx, qreal amt){
+    if(idx == 0){
+        angles.setX(angles.x()+amt);
+    }else if(idx == 1){
+        angles.setY(angles.y()+amt);
+    }else if(idx == 2){
+        angles.setZ(angles.z()+amt);
+    }
+}
+
+
+qreal MyPanelOpenGL::wrap(qreal amt){
+    if (amt > 360.){
+        return amt - 360.;
+    }
+    if (amt < 0.){
+        return amt + 360.;
+    }
+    return amt;
+}
+
+
+
+void MyPanelOpenGL::createVBO(){
+    destroyVBO(); //get rid of any old buffers
+
+    vboData = new QGLBuffer(QGLBuffer::VertexBuffer);
+    vboData->create();
+    vboData->bind();
+    vboData->setUsagePattern(QGLBuffer::StaticDraw);
+
+    vboData->allocate(numVertices*(sizeof(point4)+sizeof(color4)));
+    vboData->write(0,points,numVertices*sizeof(point4));
+    vboData->write(numVertices*sizeof(point4),colors,numVertices*sizeof(color4));
+
+    delete [] points; points=NULL;
+    delete [] colors; colors=NULL;
+}
+
+void MyPanelOpenGL::destroyVBO(){
+    if (vboData){
+        vboData->release();
+        delete vboData; vboData=NULL;
+    }
+}
+
+void MyPanelOpenGL::createShaders(){
+
+    destroyShaders(); //get rid of any old shaders
+
+    vertexShader = new QGLShader(QGLShader::Vertex);
+    if (!vertexShader->compileSourceFile("vshader.glsl")){
+        qWarning() << vertexShader->log();
+    }
+
+    fragmentShader = new QGLShader(QGLShader::Fragment);
+    if(!fragmentShader->compileSourceFile("fshader.glsl")){
+        qWarning() << fragmentShader->log();
+    }
+
+    shaderProgram = new QGLShaderProgram();
+    shaderProgram->addShader(vertexShader);
+    shaderProgram->addShader(fragmentShader);
+
+    if(!shaderProgram->link()){
+        qWarning() << shaderProgram->log() << endl;
+    }
+}
+
+void MyPanelOpenGL::destroyShaders(){
+
+    delete vertexShader; vertexShader=NULL;
+    delete fragmentShader; fragmentShader=NULL;
+
+    if(shaderProgram){
+        shaderProgram->release();
+        delete shaderProgram; shaderProgram=NULL;
+    }
+}
+

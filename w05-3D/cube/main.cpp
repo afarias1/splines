@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     format.setDepth(true); /* enable depth buffer (default) */
     format.setProfile(QGLFormat::CoreProfile); /*disallow deprecated features*/
     QGLFormat::setDefaultFormat(format);
+
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
