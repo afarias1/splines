@@ -16,6 +16,7 @@ protected:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
+    void keyPressEvent(QKeyEvent* event);
 
 public:
     explicit MyPanelOpenGL(QWidget *parent = 0);
@@ -27,6 +28,9 @@ private:
     void createShaders();
     void destroyShaders();
 
+
+    qreal wrap(qreal amt);
+    void updateAngles(int idx, qreal amt);
 
     void quad(int a, int b, int c, int d );
     void makeCube();
