@@ -42,7 +42,8 @@ void MyPanelOpenGL::initializeGL()
     shaderProgram->setAttributeBuffer("vPosition", GL_FLOAT, 0, 4, 0);
 
     shaderProgram->enableAttributeArray("vColor");
-    shaderProgram->setAttributeBuffer("vColor", GL_FLOAT, numVertices*sizeof(point4),4,0);
+    shaderProgram->setAttributeBuffer("vColor", GL_FLOAT,
+                                      numVertices*sizeof(point4),4,0);
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -135,12 +136,12 @@ void MyPanelOpenGL::quad(int a, int b, int c, int d){
 
     /* first triangle */
     colors[Index] = vertex_colors[a]; points[Index] = vertices[a]; Index++;
-    colors[Index] = vertex_colors[b]; points[Index] = vertices[b]; Index++;
-    colors[Index] = vertex_colors[c]; points[Index] = vertices[c]; Index++;
+    colors[Index] = vertex_colors[a]; points[Index] = vertices[b]; Index++;
+    colors[Index] = vertex_colors[a]; points[Index] = vertices[c]; Index++;
     /* second triangle */
     colors[Index] = vertex_colors[a]; points[Index] = vertices[a]; Index++;
-    colors[Index] = vertex_colors[c]; points[Index] = vertices[c]; Index++;
-    colors[Index] = vertex_colors[d]; points[Index] = vertices[d]; Index++;
+    colors[Index] = vertex_colors[a]; points[Index] = vertices[c]; Index++;
+    colors[Index] = vertex_colors[a]; points[Index] = vertices[d]; Index++;
 }
 
 void MyPanelOpenGL::updateAngles(int idx, qreal amt){
@@ -155,12 +156,8 @@ void MyPanelOpenGL::updateAngles(int idx, qreal amt){
 
 
 qreal MyPanelOpenGL::wrap(qreal amt){
-    if (amt > 360.){
-        return amt - 360.;
-    }
-    if (amt < 0.){
-        return amt + 360.;
-    }
+    if (amt > 360.){ return amt - 360.; }
+    else if (amt < 0.){ return amt + 360.; }
     return amt;
 }
 
