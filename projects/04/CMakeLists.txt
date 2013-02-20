@@ -32,10 +32,12 @@ set(SSRC sphere.cpp square.cpp matrixstack.cpp)
 add_library(libproj4 ${SHDRS} ${SSRC})
 
 ADD_EXECUTABLE(solar ${SRC} ${SHDRS} ${MYQTFILES} ${SHADERS})
+ADD_EXECUTABLE(parseSolarData parseData.cpp)
 
 TARGET_LINK_LIBRARIES(solar ${EXT_LIBS} libproj4)
 
 symlink_data(proj4_shaders *.glsl)
-symlink_data(proj4_png data)
+symlink_data(proj4_png data/*.png)
+symlink_data(proj4_data solarData.txt)
 
 
