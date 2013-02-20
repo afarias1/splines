@@ -27,14 +27,14 @@ void MyPanelOpenGL::initializeGL()
     glEnable(GL_DEPTH_TEST);
     //glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders();
 
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
-    m_textureID = bindTexture(QPixmap("earth.png"), GL_TEXTURE_2D);;
+    m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);;
     glBindTexture(GL_TEXTURE_2D, m_textureID);
 
     m_shaderProgram->bind();

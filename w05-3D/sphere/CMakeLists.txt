@@ -36,5 +36,6 @@ ADD_EXECUTABLE(sphere ${SRC} ${SHDRS} ${MYQTFILES} ${SHADERS})
 TARGET_LINK_LIBRARIES(sphere ${EXT_LIBS} libsphere)
 
 symlink_data(sphere_shaders *.glsl)
+symlink_data(sphere_png data)
 
 
