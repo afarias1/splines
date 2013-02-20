@@ -5,34 +5,41 @@
 using std::cout;
 using std::endl;
 using cs40::Sphere;
+using cs40::Square;
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
-    QGLWidget(parent), angles(0.,0.,0.) {
+    QGLWidget(parent), m_angles(0.,0.,0.) {
 
-    shaderProgram=NULL;
-    vertexShader=NULL;
-    fragmentShader=NULL;
+    m_shaderProgram=NULL;
+    m_vertexShader=NULL;
+    m_fragmentShader=NULL;
 
     m_sphere = NULL;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
-    shaderProgram->release();
+    m_shaderProgram->release();
     destroyShaders();
 }
 
 void MyPanelOpenGL::initializeGL()
 {
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_TEXTURE_2D);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders();
 
     m_sphere = new Sphere(0.5,30,30);
+    m_square = new Square(1.);
+    m_textureID = bindTexture(QPixmap("earth.png"), GL_TEXTURE_2D);;
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
 
-    shaderProgram->bind();
+    m_shaderProgram->bind();
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -44,12 +51,13 @@ void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if(!shaderProgram){return;}
+    if(!m_shaderProgram){return;}
 
-    shaderProgram->setUniformValue("theta",angles);
+    m_shaderProgram->setUniformValue("theta",m_angles);
+    m_shaderProgram->setUniformValue("Tex0",0);
 
-    m_sphere->draw(shaderProgram);
-
+    m_sphere->draw(m_shaderProgram);
+    //m_square->draw(m_shaderProgram);
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
@@ -81,11 +89,11 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
 
 void MyPanelOpenGL::updateAngles(int idx, qreal amt){
     if(idx == 0){
-        angles.setX(angles.x()+amt);
+        m_angles.setX(m_angles.x()+amt);
     }else if(idx == 1){
-        angles.setY(angles.y()+amt);
+        m_angles.setY(m_angles.y()+amt);
     }else if(idx == 2){
-        angles.setZ(angles.z()+amt);
+        m_angles.setZ(m_angles.z()+amt);
     }
 }
 
@@ -100,33 +108,33 @@ void MyPanelOpenGL::createShaders(){
 
     destroyShaders(); //get rid of any old shaders
 
-    vertexShader = new QGLShader(QGLShader::Vertex);
-    if (!vertexShader->compileSourceFile("vshader.glsl")){
-        qWarning() << vertexShader->log();
+    m_vertexShader = new QGLShader(QGLShader::Vertex);
+    if (!m_vertexShader->compileSourceFile("vshader.glsl")){
+        qWarning() << m_vertexShader->log();
     }
 
-    fragmentShader = new QGLShader(QGLShader::Fragment);
-    if(!fragmentShader->compileSourceFile("fshader.glsl")){
-        qWarning() << fragmentShader->log();
+    m_fragmentShader = new QGLShader(QGLShader::Fragment);
+    if(!m_fragmentShader->compileSourceFile("fshader.glsl")){
+        qWarning() << m_fragmentShader->log();
     }
 
-    shaderProgram = new QGLShaderProgram();
-    shaderProgram->addShader(vertexShader);
-    shaderProgram->addShader(fragmentShader);
+    m_shaderProgram = new QGLShaderProgram();
+    m_shaderProgram->addShader(m_vertexShader);
+    m_shaderProgram->addShader(m_fragmentShader);
 
-    if(!shaderProgram->link()){
-        qWarning() << shaderProgram->log() << endl;
+    if(!m_shaderProgram->link()){
+        qWarning() << m_shaderProgram->log() << endl;
     }
 }
 
 void MyPanelOpenGL::destroyShaders(){
 
-    delete vertexShader; vertexShader=NULL;
-    delete fragmentShader; fragmentShader=NULL;
+    delete m_vertexShader; m_vertexShader=NULL;
+    delete m_fragmentShader; m_fragmentShader=NULL;
 
-    if(shaderProgram){
-        shaderProgram->release();
-        delete shaderProgram; shaderProgram=NULL;
+    if(m_shaderProgram){
+        m_shaderProgram->release();
+        delete m_shaderProgram; m_shaderProgram=NULL;
     }
 }
 

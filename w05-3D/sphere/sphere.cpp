@@ -12,6 +12,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
 
     m_stripsize = (slices+1)*2;
     vec3* vertices = new vec3[m_stripsize*(m_stacks-2)+2*(slices+2)];
+    vec2* texCoords = new vec2[m_stripsize*(m_stacks-2)+2*(slices+2)];
     double latstep = M_PI/m_stacks;
     double longstep = 2.*M_PI/m_slices;
 
@@ -36,8 +37,10 @@ Sphere::Sphere(float radius, int slices, int stacks):
         for(int j=0; j<=m_slices; j++){
             coslong = cos(lng);
             sinlong = sin(lng);
-            vertices[idx++]=vec3(zcos1*coslong,zcos1*sinlong,z1);
-            vertices[idx++]=vec3(zcos0*coslong,zcos0*sinlong,z0);
+            vertices[idx]=vec3(zcos1*coslong,zcos1*sinlong,z1);
+            idx++;
+            vertices[idx]=vec3(zcos0*coslong,zcos0*sinlong,z0);
+            idx++;
             lng+=longstep;
         }
         //swap lat1, z1, zcos1 up
@@ -47,20 +50,6 @@ Sphere::Sphere(float radius, int slices, int stacks):
     }
 
     /* draw polar caps as fans */
-
-    /* south pole */
-    vertices[idx++]=vec3(0,0,-m_radius);
-    cout << -m_radius << endl;
-    lat0 = -M_PI/2+latstep;
-    lng = M_PI;
-    z0 = m_radius*sin(lat0);
-    zcos0 = m_radius*cos(lat0);
-    for(int i=0; i<=m_slices; i++){
-        coslong = cos(lng);
-        sinlong = sin(lng);
-        vertices[idx++]=vec3(zcos0*coslong,zcos0*sinlong,z0);
-        lng-=longstep;
-    }
 
     /* north pole */
     vertices[idx++]=vec3(0,0,m_radius);
@@ -75,9 +64,23 @@ Sphere::Sphere(float radius, int slices, int stacks):
         lng+=longstep;
     }
 
+    /* south pole */
+    vertices[idx++]=vec3(0,0,-m_radius);
+    lat0 = -M_PI/2+latstep;
+    lng = M_PI; /* Q: why M_PI and not -M_PI */
+    z0 = m_radius*sin(lat0);
+    zcos0 = m_radius*cos(lat0);
+    for(int i=0; i<=m_slices; i++){
+        coslong = cos(lng);
+        sinlong = sin(lng);
+        vertices[idx++]=vec3(zcos0*coslong,zcos0*sinlong,z0);
+        lng-=longstep; /* Q: why -= ?*/
+    }
+
     if(initVBO()){
-        int DataSize = m_stripsize*(m_stacks-2)*sizeof(vec3); /* all mid lat strips */
-        DataSize += 2*(m_slices+2)*sizeof(vec3); /* two polar fans*/
+        int DataSize = m_stripsize*(m_stacks-2)*(sizeof(vec3)+sizeof(vec2)); /* all mid lat strips */
+        DataSize += 2*(m_slices+2)*(sizeof(vec3)+sizeof(vec2)); /* two polar fans*/
+        cout << "DataSize: " << DataSize << endl;
         m_vbo->bind();
         m_vbo->allocate(DataSize);
         m_vbo->write(0,vertices,DataSize);
@@ -85,6 +88,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
     }
 
     delete [] vertices; vertices=NULL;
+    delete [] texCoords; texCoords=NULL;
 }
 
 bool Sphere::initVBO(){

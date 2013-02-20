@@ -26,8 +26,9 @@ set(SHADERS
   fshader.glsl
 )
 
-set(SHDRS sphere.h)
-set(SSRC sphere.cpp)
+set(SHDRS sphere.h square.h)
+set(SSRC sphere.cpp square.cpp)
+
 add_library(libsphere ${SHDRS} ${SSRC})
 
 ADD_EXECUTABLE(sphere ${SRC} ${SHDRS} ${MYQTFILES} ${SHADERS})

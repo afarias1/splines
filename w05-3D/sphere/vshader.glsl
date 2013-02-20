@@ -1,9 +1,13 @@
 #version 130
 
-in vec4 vPosition;
 uniform vec4 vColor;
 uniform vec3 theta;
+
+in vec4 vPosition;
+in vec2 vTexture;
+
 out vec4 color;
+out vec2 texCoord;
 
 void main() 
 {
@@ -29,6 +33,8 @@ void main()
                     0.0,  0.0, 1.0, 0.0,
                     0.0,  0.0, 0.0, 1.0 );
 
-    color = vColor;
     gl_Position = rz*ry*rx*vPosition;
+    color = vColor;
+    texCoord = vTexture;
+
 } 

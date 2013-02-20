@@ -1,5 +1,5 @@
-#ifndef _SPHERE_H
-#define _SPHERE_H
+#ifndef _SQUARE_H
+#define _SQUARE_H
 
 #include <QtOpenGL>
 
@@ -9,18 +9,18 @@ typedef QVector4D vec4;
 
 namespace cs40{
 
-class Sphere {
+class Square {
 public:
-    /* construct a sphere centered at origin with given radius 
-		 * by dividing it into vertical slices and horizontal stacks */
-    Sphere(float radius, int slices, int stacks);
+    /* construct a square with given width
+		 * centered at origin, in z=0 plane*/
+    Square(float width);
 
-    ~Sphere();
+    ~Square();
 
-    /* draw the sphere using provided shader program  */
+    /* draw the square using provided shader program  */
     void draw(QGLShaderProgram* prog);
 
-    /* Set color of Sphere */
+    /* Set color of Square */
     inline void setColor(const vec3& color){ m_color=color; m_color.setW(1.); }
 
     /* Get current color of object */
@@ -37,12 +37,9 @@ private:
 protected:
     vec4 m_color;
     QGLBuffer *m_vbo;
-    float m_radius;
-    int m_slices;
-    int m_stacks;
-    int m_stripsize; //num vertices per horizontal strip;
+    float m_width;
 };
 
 } //namespace
 
-#endif //SPHERE_H
+#endif //SQUARE_H

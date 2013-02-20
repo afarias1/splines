@@ -4,6 +4,7 @@
 #include <QGLWidget>
 #include <QtOpenGL>
 #include "sphere.h"
+#include "square.h"
 
 typedef QVector4D point4;
 typedef QVector4D color4;
@@ -25,14 +26,18 @@ public:
 
 private:
 
+    /* simple test shapes */
     cs40::Sphere* m_sphere;
+    cs40::Square* m_square;
 
-    vec3 angles; /* Euler angles for rotation */
+    GLuint m_textureID;
+
+    vec3 m_angles; /* Euler angles for rotation */
 
     /* Shaders and program */
-    QGLShader *vertexShader;
-    QGLShader *fragmentShader;
-    QGLShaderProgram *shaderProgram;
+    QGLShader *m_vertexShader;
+    QGLShader *m_fragmentShader;
+    QGLShaderProgram *m_shaderProgram;
 
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */
