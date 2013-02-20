@@ -8,7 +8,7 @@ using cs40::Sphere;
 using cs40::Square;
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
-    QGLWidget(parent), m_angles(-65.,0.,0.) {
+    QGLWidget(parent), m_angles(-125.,0.,0.) {
 
     m_shaderProgram=NULL;
     m_vertexShader=NULL;
@@ -59,6 +59,7 @@ void MyPanelOpenGL::paintGL(){
 
     if(m_drawSphere){
       m_sphere->draw(m_shaderProgram);
+      //m_square->draw(m_shaderProgram);
     }
     else{
       m_square->draw(m_shaderProgram);
@@ -129,6 +130,7 @@ void MyPanelOpenGL::updatePolyMode(int val){
     if(mode != GL_NONE){
         glPolygonMode(GL_FRONT_AND_BACK, mode);
     }
+    //glPolygonMode(GL_BACK,GL_POINT);
 }
 
 void MyPanelOpenGL::createShaders(){

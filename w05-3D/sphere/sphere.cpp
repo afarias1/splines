@@ -23,7 +23,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
     double zcos0 = m_radius*cos(lat0);
     double texY = texYstep;
 
-    double lng = -M_PI;
+    double lng = M_PI;
     double texX = 0;
     double coslong = cos(lng);
     double sinlong = sin(lng);
@@ -37,7 +37,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
         double zcos1 = m_radius*cos(lat1);
 
         //cout << 180*lat0/M_PI << " " << 180*lat1/M_PI << endl;
-        lng = -M_PI;
+        lng = M_PI;
         texX = 0;
 
         for(int j=0; j<=m_slices; j++){
@@ -47,7 +47,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
             texCoords[idx++]=vec2(texX,texY+texYstep);
             vertices[idx]=vec3(zcos0*coslong,zcos0*sinlong,z0);
             texCoords[idx++]=vec2(texX,texY);
-            lng+=longstep;
+            lng-=longstep;
             texX+=texXstep;
         }
         //swap lat1, z1, zcos1 up
@@ -63,7 +63,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
     vertices[idx]=vec3(0,0,m_radius);
     texCoords[idx++]=vec2(0.5,1);
     lat0 = M_PI/2-latstep;
-    lng = -M_PI;
+    lng = M_PI;
     z0 = m_radius*sin(lat0);
     texX = 0;
     texY = 1-texYstep;
@@ -73,7 +73,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
         sinlong = sin(lng);
         vertices[idx]=vec3(zcos0*coslong,zcos0*sinlong,z0);
         texCoords[idx++]=vec2(texX,texY);
-        lng+=longstep;
+        lng-=longstep;
         texX+=texXstep;
     }
 
@@ -81,7 +81,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
     vertices[idx]=vec3(0,0,-m_radius);
     texCoords[idx++]=vec2(0.5,0);
     lat0 = -M_PI/2+latstep;
-    lng = M_PI; /* Q: why M_PI and not -M_PI */
+    lng = -M_PI; /* Q: why -M_PI and not M_PI */
     texX=1;
     texY=texYstep;
     z0 = m_radius*sin(lat0);
@@ -91,7 +91,7 @@ Sphere::Sphere(float radius, int slices, int stacks):
         sinlong = sin(lng);
         vertices[idx]=vec3(zcos0*coslong,zcos0*sinlong,z0);
         texCoords[idx++]=vec2(texX,texY);
-        lng-=longstep; /* Q: why -= ?*/
+        lng+=longstep; /* Q: why += ?*/
         texX-=texXstep;
     }
 
