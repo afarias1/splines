@@ -30,6 +30,9 @@ private:
     cs40::Sphere* m_sphere;
     cs40::Square* m_square;
 
+    int m_polymode;
+    bool m_drawSphere;
+
     GLuint m_textureID;
 
     vec3 m_angles; /* Euler angles for rotation */
@@ -45,6 +48,12 @@ private:
 
     /* wrap a angle value to the range 0..360*/
     qreal wrap(qreal amt);
+
+    /* update Polygon draw mode based
+     * 0 : point
+     * 1 : line
+     * 2 : polygon */
+    void updatePolyMode(int val);
 
     void createVBO();
     void destroyVBO();

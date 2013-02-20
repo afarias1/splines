@@ -15,6 +15,8 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     m_fragmentShader=NULL;
 
     m_sphere = NULL;
+    m_drawSphere = false;
+    m_polymode = 1;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
@@ -25,9 +27,8 @@ MyPanelOpenGL::~MyPanelOpenGL(){
 void MyPanelOpenGL::initializeGL()
 {
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    updatePolyMode(m_polymode);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders();
@@ -56,8 +57,12 @@ void MyPanelOpenGL::paintGL(){
     m_shaderProgram->setUniformValue("theta",m_angles);
     m_shaderProgram->setUniformValue("Tex0",0);
 
-    //m_sphere->draw(m_shaderProgram);
-    m_square->draw(m_shaderProgram);
+    if(m_drawSphere){
+      m_sphere->draw(m_shaderProgram);
+    }
+    else{
+      m_square->draw(m_shaderProgram);
+    }
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
@@ -81,6 +86,17 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
         if (event->text()=="z"){updateAngles(2,step);}
         else{updateAngles(2,-step);}
         break;
+    case Qt::Key_C:
+        if(glIsEnabled(GL_CULL_FACE)){glDisable(GL_CULL_FACE);}
+        else{glEnable(GL_CULL_FACE);}
+        break;
+    case Qt::Key_P:
+        m_polymode = (m_polymode+1)%3;
+        updatePolyMode(m_polymode);
+        break;
+    case Qt::Key_S:
+        m_drawSphere = !m_drawSphere;
+        break;
     default:
         QWidget::keyPressEvent(event); /* pass to base class */
     }
@@ -102,6 +118,17 @@ qreal MyPanelOpenGL::wrap(qreal amt){
     if (amt > 360.){ return amt - 360.; }
     else if (amt < 0.){ return amt + 360.; }
     return amt;
+}
+
+void MyPanelOpenGL::updatePolyMode(int val){
+    GLenum mode=GL_NONE;
+    if(val==0){mode=GL_POINT;}
+    else if(val==1){mode=GL_LINE;}
+    else if(val==2){mode=GL_FILL;}
+
+    if(mode != GL_NONE){
+        glPolygonMode(GL_FRONT_AND_BACK, mode);
+    }
 }
 
 void MyPanelOpenGL::createShaders(){
