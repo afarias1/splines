@@ -8,7 +8,7 @@ using cs40::Sphere;
 using cs40::Square;
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
-    QGLWidget(parent), m_angles(0.,0.,0.) {
+    QGLWidget(parent), m_angles(-65.,0.,0.) {
 
     m_shaderProgram=NULL;
     m_vertexShader=NULL;
@@ -25,7 +25,7 @@ MyPanelOpenGL::~MyPanelOpenGL(){
 void MyPanelOpenGL::initializeGL()
 {
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -56,8 +56,8 @@ void MyPanelOpenGL::paintGL(){
     m_shaderProgram->setUniformValue("theta",m_angles);
     m_shaderProgram->setUniformValue("Tex0",0);
 
-    m_sphere->draw(m_shaderProgram);
-    //m_square->draw(m_shaderProgram);
+    //m_sphere->draw(m_shaderProgram);
+    m_square->draw(m_shaderProgram);
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
