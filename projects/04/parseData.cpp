@@ -6,7 +6,7 @@ using namespace std;
 int main(){
   ifstream infile;
   string name;
-  float rad, a, tau, ecc, incl;
+  float rad, a, tau, ecc, incl, day, tilt;
   char buf[1024];
   infile.open("solarData.txt");
   //read header lines
@@ -14,12 +14,12 @@ int main(){
   cout << buf << endl; 
   infile.getline(buf,1024);
   cout << buf << endl;
-  name = "";
-  char end; 
+  name = ""; 
   while(!infile.eof()){
-    infile >> name >> rad >> a >> tau >> ecc >> incl;
+    infile >> name >> rad >> a >> tau >> ecc >> incl >> day >> tilt;
     if(!infile.eof()){
-      printf("%s %f %f %f %f %f\n", name.c_str(), rad, a, tau, ecc, incl);
+      printf("%10s %8.2f %6.0f %7.2f %5.2f %5.2f %8.2f %8.2f\n", 
+					name.c_str(), rad, a, tau, ecc, incl, day, tilt);
     }
   }
   return 0;
