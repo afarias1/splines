@@ -6,26 +6,29 @@ using std::cout;
 using std::endl;
 
 Square::Square(float width):
-    m_color(1,0,0,1), m_vbo(NULL), m_width(width)
+    m_color(1,0,0,1), m_spec_color(1,1,1,1), m_vbo(NULL), m_width(width)
 {
     vec3* vertices = new vec3[4];
     vec2* texCoords = new vec2[4];
+    vec3* normals = new vec3[4];
     float d = width/2;
-    vertices[0]=vec3(-d,-d,0); texCoords[0]=vec2(0,0);
-    vertices[1]=vec3( d,-d,0); texCoords[1]=vec2(1,0);
-    vertices[2]=vec3(-d, d,0); texCoords[2]=vec2(0,1);
-    vertices[3]=vec3( d, d,0); texCoords[3]=vec2(1,1);
+    vertices[0]=vec3(-d,-d,0); texCoords[0]=vec2(0,0); normals[0]=vec3(0,0,-1.);
+    vertices[1]=vec3( d,-d,0); texCoords[1]=vec2(1,0); normals[1]=vec3(0,0,-1.);
+    vertices[2]=vec3(-d, d,0); texCoords[2]=vec2(0,1); normals[2]=vec3(0,0,-1.);
+    vertices[3]=vec3( d, d,0); texCoords[3]=vec2(1,1); normals[3]=vec3(0,0,-1.);
 
     if(initVBO()){
         m_vbo->bind();
         m_vbo->allocate(4*sizeof(vec3)+4*sizeof(vec2));
         m_vbo->write(0,vertices,4*sizeof(vec3));
         m_vbo->write(4*sizeof(vec3),texCoords,4*sizeof(vec2));
+        m_vbo->write(4*(sizeof(vec3)+sizeof(vec2)), normals, sizeof(vec3));
         m_vbo->release();
     }
 
     delete [] vertices; vertices=NULL;
     delete [] texCoords; texCoords=NULL;
+    delete [] normals; normals=NULL;
 }
 
 bool Square::initVBO(){
@@ -46,10 +49,13 @@ void Square::draw(QGLShaderProgram* prog){
     if(!prog){ return; }
     m_vbo->bind();
     prog->setUniformValue("vColor",m_color);
+    prog->setUniformValue("vSColor",m_spec_color);
     prog->enableAttributeArray("vPosition");
     prog->setAttributeBuffer("vPosition",GL_FLOAT,0,3,0);
     prog->enableAttributeArray("vTexture");
     prog->setAttributeBuffer("vTexture",GL_FLOAT,4*sizeof(vec3),2,0);
+    prog->enableAttributeArray("vNormal");
+    prog->setAttributeBuffer("vNormal",GL_FLOAT,4*(sizeof(vec3)+sizeof(vec2)),3,0);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     m_vbo->release();
 }

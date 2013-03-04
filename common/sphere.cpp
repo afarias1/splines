@@ -6,7 +6,7 @@ using std::cout;
 using std::endl;
 
 Sphere::Sphere(float radius, int slices, int stacks):
-    m_color(0,0,1,1), m_vbo(NULL), m_radius(radius),
+    m_color(0,0,1,1), m_spec_color(1,1,1,1), m_vbo(NULL), m_radius(radius),
     m_slices(slices), m_stacks(stacks)
 {
 
@@ -143,11 +143,13 @@ void Sphere::draw(QGLShaderProgram* prog){
     if(!prog){ return; }
     m_vbo->bind();
     prog->setUniformValue("vColor",m_color);
+    prog->setUniformValue("vSColor", m_spec_color);
     prog->enableAttributeArray("vPosition");
     prog->setAttributeBuffer("vPosition",GL_FLOAT,0,3,0);
     prog->enableAttributeArray("vTexture");
     int nverts = (m_stacks-2)*m_stripsize+2*(m_slices+2);
     prog->setAttributeBuffer("vTexture",GL_FLOAT,nverts*sizeof(vec3),2,0);
+    prog->enableAttributeArray("vNormal");
     prog->setAttributeBuffer("vNormal",GL_FLOAT,nverts*(sizeof(vec3)+sizeof(vec2)),3,0);
     for(int i=0; i<m_stacks-2; i++){
       glDrawArrays(GL_TRIANGLE_STRIP,i*m_stripsize, m_stripsize);

@@ -30,6 +30,7 @@ MyPanelOpenGL::~MyPanelOpenGL(){
 void MyPanelOpenGL::initializeGL()
 {
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     updatePolyMode(m_polymode);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -57,10 +58,13 @@ void MyPanelOpenGL::paintGL(){
 
     if(!m_shaderProgram){return;}
 
-    m_shaderProgram->setUniformValue("theta",m_angles);
+    mat4 mview = m_camera*m_model;
     m_shaderProgram->setUniformValue("projection",m_projection);
     m_shaderProgram->setUniformValue("camera",m_camera);
     m_shaderProgram->setUniformValue("model", m_model);
+    m_shaderProgram->setUniformValue("modelView",mview);
+    m_shaderProgram->setUniformValue("normalMatrix",mview.normalMatrix());
+    m_shaderProgram->setUniformValue("lightPos",vec4(0.8,0,2,1.)); //in world coordinates
 
     if(m_drawSphere){
       m_sphere->draw(m_shaderProgram);

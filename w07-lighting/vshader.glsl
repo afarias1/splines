@@ -1,11 +1,15 @@
 #version 130
 
-uniform vec4 vColor;
-uniform vec3 theta;
+uniform vec4 vColor;  //ambient and diffuse color
+uniform vec4 vSColor; //specular color
 
 uniform mat4 model;
 uniform mat4 camera;
 uniform mat4 projection;
+uniform mat3 normalMatrix;
+uniform mat4 modelView;
+
+uniform vec4 lightPos;
 
 in vec4 vPosition;
 in vec2 vTexture;
@@ -15,29 +19,20 @@ out vec4 color;
 
 void main() 
 {
-    // Compute the sines and cosines of theta for each of
-    //   the three axes in one computation.
-    vec3 angles = radians( theta );
-    vec3 c = cos( angles );
-    vec3 s = sin( angles );
+    vec4 ambient, diffuse, specular;
 
-    // GLSL matrices are column-major
-    mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
-                    0.0,  c.x,  s.x, 0.0,
-                    0.0, -s.x,  c.x, 0.0,
-                    0.0,  0.0,  0.0, 1.0 );
+    vec3 N = normalize(normalMatrix*vNormal);
+    vec3 L = normalize((camera*lightPos).xyz-(modelView*vPosition).xyz);
+    vec3 E = -normalize((modelView*vPosition).xyz); //from pt to viewer
+    vec3 H = normalize(L+E);
+    float Kd = max(dot(L,N),0.0);
+    float Ks = pow(max(dot(N,H),0.0),50);
+    ambient = vColor*0.3;
+    diffuse = vColor*Kd*0.6;
+    specular = vSColor*Ks*0.1;
 
-    mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
-                    0.0, 1.0,  0.0, 0.0,
-                    s.y, 0.0,  c.y, 0.0,
-                    0.0, 0.0,  0.0, 1.0 );
-
-    mat4 rz = mat4( c.z,  s.z, 0.0, 0.0,
-                   -s.z,  c.z, 0.0, 0.0,
-                    0.0,  0.0, 1.0, 0.0,
-                    0.0,  0.0, 0.0, 1.0 );
-
-    gl_Position = projection*camera*rz*ry*rx*model*vPosition;
-    color = vColor;
+    gl_Position = projection*modelView*vPosition;
+    color = vec4((ambient+diffuse+specular).xyz,1.0);
+    //color = vColor;
 
 } 

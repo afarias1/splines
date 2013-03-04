@@ -20,12 +20,15 @@ public:
     /* draw the sphere using provided shader program  */
     void draw(QGLShaderProgram* prog);
 
-    /* Set color of Sphere */
+    /* Set Ambient and Diffuse color of Sphere */
     inline void setColor(const vec3& color){ m_color=color; m_color.setW(1.); }
 
-    /* Get current color of object */
-    inline vec4 getColor() const { return m_color; }
+    inline void setSpecularColor(const vec3& color){ m_spec_color=color; m_spec_color.setW(1.); }
 
+    /* Get current color of object */
+    inline vec4 getAmbientAndDiffuseColor() const { return m_color; }
+
+    inline vec4 getSpecularColor() const {return m_spec_color;}
 private:
 
     /* Generate Vertex Buffer Objects, but do not bind/allocate.
@@ -36,6 +39,7 @@ private:
 
 protected:
     vec4 m_color;
+    vec4 m_spec_color;
     QGLBuffer *m_vbo;
     float m_radius;
     int m_slices;
