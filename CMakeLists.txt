@@ -21,11 +21,13 @@ SET(EXT_LIBS ${QT_LIBRARIES} ${OPENGL_LIBRARY} ${GLEW_LIBRARY})
 
 #get symlink_data macro
 include(${CMAKE_SOURCE_DIR}/cmake_modules/helpers.cmake)
-
+include_directories(./)
 add_subdirectory(w01-intro)
 add_subdirectory(w02-opengl)
 add_subdirectory(w03-geometry)
 add_subdirectory(w04-colorVBO)
 add_subdirectory(w05-3D)
 add_subdirectory(projects)
+add_subdirectory(common)
+add_subdirectory(w07-lighting)
 
