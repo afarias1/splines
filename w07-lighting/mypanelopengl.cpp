@@ -43,8 +43,6 @@ void MyPanelOpenGL::initializeGL()
     m_camera.lookAt(vec3(0,0,3),vec3(0,0,0),vec3(0,1.,0.));
     m_model.setToIdentity();
     m_shaderProgram->bind();
-
-
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -68,7 +66,13 @@ void MyPanelOpenGL::paintGL(){
 
     if(m_drawSphere){
       m_sphere->draw(m_shaderProgram);
-      //m_square->draw(m_shaderProgram);
+      m_model.rotate(30,vec3(0,1,0));
+      mview = m_camera*m_model;
+      m_shaderProgram->setUniformValue("model", m_model);
+      m_shaderProgram->setUniformValue("modelView",mview);
+      m_shaderProgram->setUniformValue("normalMatrix",mview.normalMatrix());
+      m_square->draw(m_shaderProgram);
+      m_model.setToIdentity();
     }
     else{
       m_square->draw(m_shaderProgram);
