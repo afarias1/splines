@@ -1,8 +1,5 @@
 #version 130
 
-uniform vec4 vColor;  //ambient and diffuse color
-uniform vec4 vSColor; //specular color
-
 uniform mat4 model;
 uniform mat4 camera;
 uniform mat4 projection;
@@ -16,23 +13,15 @@ in vec2 vTexture;
 in vec3 vNormal;
 
 out vec4 color;
+out vec3 N;
+out vec3 L;
+out vec3 E;
 
 void main() 
 {
-    vec4 ambient, diffuse, specular;
-
-    vec3 N = normalize(normalMatrix*vNormal);
-    vec3 L = normalize((camera*lightPos).xyz-(modelView*vPosition).xyz);
-    vec3 E = -normalize((modelView*vPosition).xyz); //from pt to viewer
-    vec3 H = normalize(L+E);
-    float Kd = max(dot(L,N),0.0);
-    float Ks = pow(max(dot(N,H),0.0),50);
-    ambient = vColor*0.3;
-    diffuse = vColor*Kd*0.6;
-    specular = vSColor*Ks*0.1;
+    N = normalMatrix*vNormal;
+    L = (camera*lightPos).xyz-(modelView*vPosition).xyz;
+    E = -(modelView*vPosition).xyz; //from pt to viewer
 
     gl_Position = projection*modelView*vPosition;
-    color = vec4((ambient+diffuse+specular).xyz,1.0);
-    //color = vColor;
-
 } 

@@ -26,10 +26,10 @@ void main()
     vec3 E = -normalize((modelView*vPosition).xyz); //from pt to viewer
     vec3 H = normalize(L+E);
     float Kd = max(dot(L,N),0.0);
-    float Ks = pow(max(dot(N,H),0.0),50);
-    ambient = vColor*0.3;
-    diffuse = vColor*Kd*0.6;
-    specular = vSColor*Ks*0.1;
+    float Ks = pow(max(dot(N,H),0.0),80);
+    ambient = vColor*0.2;
+    diffuse = vColor*Kd*0.5;
+    specular = vSColor*Ks*0.3;
 
     gl_Position = projection*modelView*vPosition;
     color = vec4((ambient+diffuse+specular).xyz,1.0);

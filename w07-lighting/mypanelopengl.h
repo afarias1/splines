@@ -49,6 +49,10 @@ private:
     QGLShaderProgram *m_shaderPrograms[2];
     int m_curr_prog; //current program ID
 
+    /* draw square originally in z=0 plane, rotated about y-axis
+     * by yangle (in degrees) */
+    void drawSquare(float yangle);
+
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */
     void updateAngles(int idx, qreal amt);

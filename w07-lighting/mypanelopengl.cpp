@@ -41,7 +41,7 @@ void MyPanelOpenGL::initializeGL()
     createShaders(0, "vshader.glsl", "fshader.glsl");
     createShaders(1, "vfraglight.glsl", "ffraglight.glsl");
 
-    m_sphere = new Sphere(0.5,30,30);
+    m_sphere = new Sphere(0.5,8,8);
     m_square = new Square(1.);
 
     m_projection.perspective(40,1,1,8);
@@ -67,26 +67,31 @@ void MyPanelOpenGL::paintGL(){
     m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
     m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
     m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
-    m_shaderPrograms[m_curr_prog]->setUniformValue("lightPos",vec4(0.8,0,2,1.)); //in world coordinates
+    m_shaderPrograms[m_curr_prog]->setUniformValue("lightPos",vec4(1.0,0,2,1.)); //in world coordinates
 
+    float yangle = 15;
     if(m_drawSphere){
         m_sphere->draw(m_shaderPrograms[m_curr_prog]);
-        m_model.rotate(30,vec3(0,1,0));
-        mview = m_camera*m_model;
-        m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
-        m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
-        m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
-        m_square->draw(m_shaderPrograms[m_curr_prog]);
-        m_model.setToIdentity();
+        drawSquare(yangle);
     }
     else{
-        m_square->draw(m_shaderPrograms[m_curr_prog]);
+        drawSquare(yangle);
     }
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
 }
 
+void MyPanelOpenGL::drawSquare(float yangle){
+    m_model.setToIdentity();
+    m_model.rotate(yangle,vec3(0,1,0));
+    mat4 mview = m_camera*m_model;
+    m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
+    m_square->draw(m_shaderPrograms[m_curr_prog]);
+    m_model.setToIdentity();
+}
 
 void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
 {
@@ -156,6 +161,7 @@ void MyPanelOpenGL::updatePolyMode(int val){
 
 void MyPanelOpenGL::createShaders(int i, QString vertName, QString fragName){
 
+    cout << "building shader " << i << endl;
     destroyShaders(i); //get rid of any old shaders
     m_vertexShaders[i] = new QGLShader(QGLShader::Vertex);
     if (!m_vertexShaders[i]->compileSourceFile(vertName)){
