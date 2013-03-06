@@ -31,7 +31,8 @@ private:
     cs40::Scene m_scene;
     QHash<QString, vec3> m_colors;
 
-    /* materials["current_"] is a special entry refering to the
+    /* Hash table mapping material names to material structs.
+     * materials["current_"] is a special entry refering to the
      * current material. The current material is applied to all newly
      * created objects */
     QHash<QString, cs40::Material> m_materials;
@@ -42,8 +43,8 @@ private:
     void parseLine(const std::vector<std::string>& words);
 
     /* parse a material command in the vector words,
-     * using matmap to load/store/modify current and other maps */
-    void parseMat(const std::vector<std::string>& words, QHash<QString,cs40::Material>& matmap);
+     * using m_materials to load/store/modify current and other maps */
+    void parseMat(const std::vector<std::string>& words);
 
     /* convert from 0-1 rgb space to 0-255 */
     cs40::RGBColor convertColor(const vec3& clr);

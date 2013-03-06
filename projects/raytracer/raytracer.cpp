@@ -1,25 +1,39 @@
+//C++ STL
 #include <iostream>
 #include <fstream>
-#include "raytracer.h"
 #include <string>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <cmath>
+
+//QT
 #include <QHash>      //Qt Dictionary
 #include <QString>    //Appease QT with its strings
+
+//Our stuff
+#include "raytracer.h"
 #include "view.h"     //image, eye properties
 #include "shape.h"    //base class for hitable objects
 #include "light.h"    //basic light struct (pos, intensity)
 #include "parser.h"   //helper functions for reading input file
+#include "ray.h"      //things we trace
+#include "scene.h"    //things we hit
+#include "rgbImage.h" //things to which we save output
 
-#include "rgbImage.h"
-#include "ray.h"
-#include "scene.h"
 
+using std::cout;
+using std::endl;
+using std::string;
+using std::ifstream;
+using std::vector;
 
-using namespace std;
-using namespace cs40;
+using cs40::RayTracer;
+using cs40::RGBColor;
+using cs40::Material;
+using cs40::Scene;
+using cs40::View;
+//get stuck? use the nuclear option..
+//using namespace cs40;
 
 
 RayTracer::RayTracer(){
@@ -114,7 +128,7 @@ void RayTracer::parseLine(const vector<string>& words){
     else if (cmd == "mat"){
         //either mat cmd name or mat cmd r g b
         checksize(words,2,4);
-        parseMat(words, m_materials); //this gets complicated
+        parseMat(words); //this gets complicated
     }
     else if (cmd == "sphere"){
         checksize(words, 4);
@@ -133,7 +147,6 @@ void RayTracer::parseLine(const vector<string>& words){
     }
     else if (cmd == "light"){
         checksize(words,4);
-
         //Light l;
         throw parser_error("Parse your own light");
         //m_scene.lights.push_back(l);
@@ -145,18 +158,17 @@ void RayTracer::parseLine(const vector<string>& words){
 
 /* parse a material command in the vector words, 
  * using matmap to load/store/modify current and other maps */
-void RayTracer::parseMat(const vector<string>& words,
-              QHash<QString,Material>& matmap){
+void RayTracer::parseMat(const vector<string>& words){
     string subcmd = words[1];
     if(subcmd == "save"){
-        matmap[words[2].c_str()] = matmap[QString("current_")];
+        m_materials[words[2].c_str()] = m_materials[QString("current_")];
     }
     else if(subcmd == "load"){
         if(m_materials.contains(words[2].c_str())){
-            matmap["current_"]=m_materials[words[2].c_str()];
+            m_materials["current_"]=m_materials[words[2].c_str()];
         }
         else{
-            throw parser_error("No color " + words[2] + " found");
+            throw parser_error("No Material " + words[2] + " found");
         }
     }
     else if(subcmd != "amb" && subcmd != "diff" && subcmd != "spec"){
@@ -178,8 +190,8 @@ void RayTracer::parseMat(const vector<string>& words,
                 throw parser_error("No color " + clrname + " found");
             }
         }
-        if(subcmd=="amb"){matmap["current_"].ambient=clr;}
-        else if(subcmd=="diff"){matmap["current_"].diffuse=clr;}
-        else if(subcmd=="spec"){matmap["current_"].specular=clr;}
+        if(subcmd=="amb"){m_materials["current_"].ambient=clr;}
+        else if(subcmd=="diff"){m_materials["current_"].diffuse=clr;}
+        else if(subcmd=="spec"){m_materials["current_"].specular=clr;}
     }
 }
