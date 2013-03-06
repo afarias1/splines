@@ -4,17 +4,21 @@
 #include "shape.h"
 #include "common.h"
 
+namespace cs40{
+
 class Sphere : public Shape { 
-  protected:
+protected:
     //TODO: add member variables
-  public:
+public:
     //TODO: add constructor
 
     ~Sphere() { /*do nothing*/ };
 
-    //TODO: implement in sphere.cpp    
-    float hitTime(const Ray& r);
+    //TODO: implement in sphere.cpp
+    float hitTime(const cs40::Ray& r);
     vec3 normal(const vec3& p);
 };
+
+}
 
 #endif
