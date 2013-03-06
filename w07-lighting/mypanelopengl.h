@@ -44,9 +44,10 @@ private:
     mat4 m_projection;
 
     /* Shaders and program */
-    QGLShader *m_vertexShader;
-    QGLShader *m_fragmentShader;
-    QGLShaderProgram *m_shaderProgram;
+    QGLShader *m_vertexShaders[2];
+    QGLShader *m_fragmentShaders[2];
+    QGLShaderProgram *m_shaderPrograms[2];
+    int m_curr_prog; //current program ID
 
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */
@@ -61,10 +62,8 @@ private:
      * 2 : polygon */
     void updatePolyMode(int val);
 
-    void createVBO();
-    void destroyVBO();
-    void createShaders();
-    void destroyShaders();
+    void createShaders(int i, QString vertName, QString fragName);
+    void destroyShaders(int i);
 
 signals:
     

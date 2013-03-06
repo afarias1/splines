@@ -24,7 +24,10 @@ set(SRC
 set(SHADERS
   vshader.glsl
   fshader.glsl
+  vfraglight.glsl
+  ffraglight.glsl
 )
+
 ADD_EXECUTABLE(phong ${SRC} ${SHDRS} ${MYQTFILES} ${SHADERS})
 
 TARGET_LINK_LIBRARIES(phong ${EXT_LIBS} libcommon)

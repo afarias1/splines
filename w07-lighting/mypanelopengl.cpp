@@ -10,21 +10,25 @@ using cs40::Square;
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     QGLWidget(parent), m_angles(-125.,0.,0.) {
 
-    m_shaderProgram=NULL;
-    m_vertexShader=NULL;
-    m_fragmentShader=NULL;
+
+    for(int i=0; i<2; i++){
+        m_shaderPrograms[i]=NULL;
+        m_vertexShaders[i]=NULL;
+        m_fragmentShaders[i]=NULL;
+    }
 
     m_sphere = NULL;
     m_square = NULL;
     m_drawSphere = true;
     m_polymode = 2;
+    m_curr_prog = 0;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
-    m_shaderProgram->release();
+    m_shaderPrograms[m_curr_prog]->release();
     delete m_sphere; m_sphere=NULL;
     delete m_square; m_square=NULL;
-    destroyShaders();
+    destroyShaders(0); destroyShaders(1);
 }
 
 void MyPanelOpenGL::initializeGL()
@@ -34,7 +38,8 @@ void MyPanelOpenGL::initializeGL()
     updatePolyMode(m_polymode);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    createShaders();
+    createShaders(0, "vshader.glsl", "fshader.glsl");
+    createShaders(1, "vfraglight.glsl", "ffraglight.glsl");
 
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
@@ -42,7 +47,7 @@ void MyPanelOpenGL::initializeGL()
     m_projection.perspective(40,1,1,8);
     m_camera.lookAt(vec3(0,0,3),vec3(0,0,0),vec3(0,1.,0.));
     m_model.setToIdentity();
-    m_shaderProgram->bind();
+
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -54,28 +59,28 @@ void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if(!m_shaderProgram){return;}
-
+    if(!m_shaderPrograms[m_curr_prog]){return;}
+    m_shaderPrograms[m_curr_prog]->bind();
     mat4 mview = m_camera*m_model;
-    m_shaderProgram->setUniformValue("projection",m_projection);
-    m_shaderProgram->setUniformValue("camera",m_camera);
-    m_shaderProgram->setUniformValue("model", m_model);
-    m_shaderProgram->setUniformValue("modelView",mview);
-    m_shaderProgram->setUniformValue("normalMatrix",mview.normalMatrix());
-    m_shaderProgram->setUniformValue("lightPos",vec4(0.8,0,2,1.)); //in world coordinates
+    m_shaderPrograms[m_curr_prog]->setUniformValue("projection",m_projection);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("camera",m_camera);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
+    m_shaderPrograms[m_curr_prog]->setUniformValue("lightPos",vec4(0.8,0,2,1.)); //in world coordinates
 
     if(m_drawSphere){
-      m_sphere->draw(m_shaderProgram);
-      m_model.rotate(30,vec3(0,1,0));
-      mview = m_camera*m_model;
-      m_shaderProgram->setUniformValue("model", m_model);
-      m_shaderProgram->setUniformValue("modelView",mview);
-      m_shaderProgram->setUniformValue("normalMatrix",mview.normalMatrix());
-      m_square->draw(m_shaderProgram);
-      m_model.setToIdentity();
+        m_sphere->draw(m_shaderPrograms[m_curr_prog]);
+        m_model.rotate(30,vec3(0,1,0));
+        mview = m_camera*m_model;
+        m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
+        m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
+        m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
+        m_square->draw(m_shaderPrograms[m_curr_prog]);
+        m_model.setToIdentity();
     }
     else{
-      m_square->draw(m_shaderProgram);
+        m_square->draw(m_shaderPrograms[m_curr_prog]);
     }
     glFlush();
 
@@ -110,6 +115,9 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
         break;
     case Qt::Key_S:
         m_drawSphere = !m_drawSphere;
+        break;
+    case Qt::Key_L:
+        m_curr_prog = (m_curr_prog+1)%2;
         break;
     default:
         QWidget::keyPressEvent(event); /* pass to base class */
@@ -146,37 +154,35 @@ void MyPanelOpenGL::updatePolyMode(int val){
     //glPolygonMode(GL_BACK,GL_POINT);
 }
 
-void MyPanelOpenGL::createShaders(){
+void MyPanelOpenGL::createShaders(int i, QString vertName, QString fragName){
 
-    destroyShaders(); //get rid of any old shaders
-
-    m_vertexShader = new QGLShader(QGLShader::Vertex);
-    if (!m_vertexShader->compileSourceFile("vshader.glsl")){
-        qWarning() << m_vertexShader->log();
+    destroyShaders(i); //get rid of any old shaders
+    m_vertexShaders[i] = new QGLShader(QGLShader::Vertex);
+    if (!m_vertexShaders[i]->compileSourceFile(vertName)){
+        qWarning() << m_vertexShaders[i]->log();
     }
 
-    m_fragmentShader = new QGLShader(QGLShader::Fragment);
-    if(!m_fragmentShader->compileSourceFile("fshader.glsl")){
-        qWarning() << m_fragmentShader->log();
+    m_fragmentShaders[i] = new QGLShader(QGLShader::Fragment);
+    if(!m_fragmentShaders[i]->compileSourceFile(fragName)){
+        qWarning() << m_fragmentShaders[i]->log();
     }
 
-    m_shaderProgram = new QGLShaderProgram();
-    m_shaderProgram->addShader(m_vertexShader);
-    m_shaderProgram->addShader(m_fragmentShader);
+    m_shaderPrograms[i] = new QGLShaderProgram();
+    m_shaderPrograms[i]->addShader(m_vertexShaders[i]);
+    m_shaderPrograms[i]->addShader(m_fragmentShaders[i]);
 
-    if(!m_shaderProgram->link()){
-        qWarning() << m_shaderProgram->log() << endl;
+    if(!m_shaderPrograms[i]->link()){
+        qWarning() << m_shaderPrograms[i]->log() << endl;
     }
 }
 
-void MyPanelOpenGL::destroyShaders(){
+void MyPanelOpenGL::destroyShaders(int i){
+    delete m_vertexShaders[i]; m_vertexShaders[i]=NULL;
+    delete m_fragmentShaders[i]; m_fragmentShaders[i]=NULL;
 
-    delete m_vertexShader; m_vertexShader=NULL;
-    delete m_fragmentShader; m_fragmentShader=NULL;
-
-    if(m_shaderProgram){
-        m_shaderProgram->release();
-        delete m_shaderProgram; m_shaderProgram=NULL;
+    if(m_shaderPrograms[i]){
+        m_shaderPrograms[i]->release();
+        delete m_shaderPrograms[i]; m_shaderPrograms[i]=NULL;
     }
 }
 
