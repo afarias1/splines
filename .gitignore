@@ -1,5 +1,6 @@
 build
 qtbuild
-CMakeLists.txt.user
+CMakeLists.txt.user*
+*.autosave
 w05-3D/sphere/data
 projects/04/data
