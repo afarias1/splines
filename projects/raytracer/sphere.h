@@ -15,8 +15,8 @@ public:
     ~Sphere() { /*do nothing*/ };
 
     //TODO: implement in sphere.cpp
-    float hitTime(const cs40::Ray& r);
-    vec3 normal(const vec3& p);
+    float hitTime(const cs40::Ray& r) const;
+    vec3 normal(const vec3& p) const;
 };
 
 }
