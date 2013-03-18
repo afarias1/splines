@@ -1,7 +1,9 @@
 #ifndef _SQUARE_H
 #define _SQUARE_H
 
-#include <QtOpenGL>
+#include <QGLBuffer>
+#include <QGLShaderProgram>
+#include <cmath>
 
 typedef QVector2D vec2;
 typedef QVector3D vec3;

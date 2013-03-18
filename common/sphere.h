@@ -1,7 +1,9 @@
 #ifndef _SPHERE_H
 #define _SPHERE_H
 
-#include <QtOpenGL>
+#include <QGLBuffer>
+#include <QGLShaderProgram>
+#include <cmath>
 
 typedef QVector2D vec2;
 typedef QVector3D vec3;
