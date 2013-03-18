@@ -30,4 +30,5 @@ add_subdirectory(w05-3D)
 add_subdirectory(projects)
 add_subdirectory(common)
 add_subdirectory(w07-lighting)
+add_subdirectory(w08-noise)
 
