@@ -18,7 +18,7 @@ void main()
     vec4 baseColor;
     baseColor = texture(Tex0,texCoord);
     vec3 norm=texture(Tex1,texCoord).xyz*2-1;
-    //baseColor = vColor;
+    baseColor = vColor;
     vec4 ambient, diffuse, specular;
 
     vec3 NN = normalize(N);
