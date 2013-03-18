@@ -15,12 +15,13 @@ out vec4 fragColor;
 
 void main() 
 {
-    vec4 baseColor = texture(Tex0,texCoord);
+	  vec4 baseColor;
+    baseColor = texture(Tex0,texCoord);
     vec3 norm=texture(Tex1,texCoord).xyz*2-1;
-    //vec4 baseColor = vColor;
+    //baseColor = vColor;
     vec4 ambient, diffuse, specular;
 
-    vec3 NN = normalize(norm+N);
+    vec3 NN = normalize(N);
     vec3 EE = normalize(E);
     vec3 LL = normalize(L);
     vec3 H  = normalize(LL+EE);

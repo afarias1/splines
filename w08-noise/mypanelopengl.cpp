@@ -19,7 +19,7 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     m_sphere = NULL;
     m_drawSphere = true;
     m_polymode = 2;
-    m_curr_prog = 1;
+    m_curr_prog = 0;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
