@@ -15,7 +15,7 @@ out vec4 fragColor;
 
 void main() 
 {
-	  vec4 baseColor;
+    vec4 baseColor;
     baseColor = texture(Tex0,texCoord);
     vec3 norm=texture(Tex1,texCoord).xyz*2-1;
     //baseColor = vColor;

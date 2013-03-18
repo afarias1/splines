@@ -20,6 +20,7 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     m_drawSphere = true;
     m_polymode = 2;
     m_curr_prog = 0;
+    m_normal_map = 0;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
@@ -43,13 +44,14 @@ void MyPanelOpenGL::initializeGL()
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
     m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
-    m_normalMapID = bindTexture(QPixmap("data/beady.jpg"), GL_TEXTURE_2D);
+    m_normalMapID1 = bindTexture(QPixmap("data/beady.jpg"), GL_TEXTURE_2D);
+    m_normalMapID2 = bindTexture(QPixmap("data/crinkly.jpg"), GL_TEXTURE_2D);
 
     //fixed by using glew, glext instead of QtOpenGL
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_textureID);
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, m_normalMapID);
+    glBindTexture(GL_TEXTURE_2D, m_normalMapID1);
 
     m_shaderPrograms[m_curr_prog]->bind();
 
@@ -112,6 +114,16 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
     case Qt::Key_C:
         if(glIsEnabled(GL_CULL_FACE)){glDisable(GL_CULL_FACE);}
         else{glEnable(GL_CULL_FACE);}
+        break;
+    case Qt::Key_N:
+        m_normal_map = (m_polymode+1)%2;
+        glActiveTexture(GL_TEXTURE1);
+        if (m_normal_map==0){
+            glBindTexture(GL_TEXTURE_2D, m_normalMapID1);
+        }
+        else if (m_normal_map==1){
+            glBindTexture(GL_TEXTURE_2D, m_normalMapID2);
+        }
         break;
     case Qt::Key_P:
         m_polymode = (m_polymode+1)%3;

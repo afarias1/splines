@@ -38,10 +38,12 @@ private:
     cs40::Square* m_square;
 
     int m_polymode;
+    int m_normal_map;
     bool m_drawSphere;
 
     GLuint m_textureID;
-    GLuint m_normalMapID;
+    GLuint m_normalMapID1;
+    GLuint m_normalMapID2;
 
     vec3 m_angles; /* Euler angles for rotation */
 
