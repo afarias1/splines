@@ -35,4 +35,9 @@ TARGET_LINK_LIBRARIES(nmap ${EXT_LIBS} libcommon)
 symlink_data(nmap_shaders *.glsl)
 symlink_data(nmap_data data)
 
+ADD_LIBRARY(perlin noise.h noise.cpp)
+ADD_EXECUTABLE(testperlin test_noise.cpp noise.cpp noise.h)
+
+TARGET_LINK_LIBRARIES(testperlin ${EXT_LIBS} common_rgb perlin)
+
 
