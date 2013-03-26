@@ -10,4 +10,5 @@ set(CLRHDRS png_reader.h png_writer.h
 set(CLRSRC png_reader.cpp png_writer.cpp rgbImage.cpp)
 add_library(common_rgb ${CLRHDRS} ${CLRSRC})
 
+add_library(common_noise noise.h noise.cpp)
 
