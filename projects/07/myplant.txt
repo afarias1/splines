@@ -1,0 +1,9 @@
+#start symbol
+
+X
+
+#rule LHS, numeric weight (optional), RHS
+
+X F [ L X ] F [ R X ] L X
+F 0.9 F F
+F 0.1 F

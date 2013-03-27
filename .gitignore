@@ -4,5 +4,6 @@ CMakeLists.txt.user*
 *.autosave
 w05-3D/sphere/data
 projects/04/data
+projects/07/data
 w08-noise/data
 w09-grammar/data
