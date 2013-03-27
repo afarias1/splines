@@ -7,6 +7,7 @@
 namespace cs40{
 typedef struct prod_s {
   float weight;
+  QString lhs;
   QList<QString> symbols;
 } Production;
 }

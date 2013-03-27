@@ -26,6 +26,8 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     m_shapeMode = 3;
     m_polyMode = 2;
     m_curr_prog = 0;
+    m_plant.parseFile("myplant.txt");
+    m_plant.printGrammar();
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
