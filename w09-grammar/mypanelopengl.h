@@ -38,7 +38,8 @@ private:
     /* simple test shapes */
     cs40::Sphere* m_sphere;
     cs40::Square* m_square;
-		cs40::Cylinder* m_cylinder;
+    cs40::Cylinder* m_cylinder;
+    cs40::Cylinder* m_branch;
 
     int m_polyMode;
     int m_shapeMode;

@@ -20,9 +20,10 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     }
 
     m_sphere = NULL;
-		m_square = NULL;
-		m_cylinder = NULL;
-    m_shapeMode = 2;
+    m_square = NULL;
+    m_cylinder = NULL;
+    m_branch = NULL;
+    m_shapeMode = 0;
     m_polyMode = 2;
     m_curr_prog = 0;
 }
@@ -32,7 +33,10 @@ MyPanelOpenGL::~MyPanelOpenGL(){
     delete m_sphere; m_sphere=NULL;
     delete m_square; m_square=NULL;
     delete m_cylinder; m_cylinder=NULL;
-    destroyShaders(0); destroyShaders(1);
+    delete m_branch; m_branch=NULL;
+    for(int i=0; i<CS40_NUM_PROGS; i++){
+        destroyShaders(i);
+    }
 }
 
 void MyPanelOpenGL::initializeGL()
@@ -48,6 +52,7 @@ void MyPanelOpenGL::initializeGL()
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
     m_cylinder = new Cylinder(0.25,0.7,30,30);
+    m_branch = new Cylinder(0.05,0.4,20,20);
     m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
     m_normalMapID = bindTexture(QPixmap("data/beady.jpg"), GL_TEXTURE_2D);
 
@@ -70,16 +75,41 @@ void MyPanelOpenGL::resizeGL(int w, int h)
 }
 
 void MyPanelOpenGL::drawTree(){
-	  MatrixStack mstack;
-		mstack.top() = m_model;
-		mstack.push();
-		mstack.pop();
-    mat4 mview = m_camera*m_model;
-    m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
-    m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
-    m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",
-				mview.normalMatrix());
-		m_cylinder->draw(m_shaderPrograms[m_curr_prog]);
+    MatrixStack mstack;
+    mstack.top() = m_model; //save old model
+    mstack.push();
+
+    mstack.translate(0,-0.6,0);
+
+    QString s="F[RF]F[LF]F";
+    for (int i =0; i < s.length(); i++){
+        if(s[i]=='F'){
+            m_model=mstack.top();
+            mat4 mview = m_camera*m_model;
+            m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
+            m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
+            m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",
+                                                           mview.normalMatrix());
+            m_branch->draw(m_shaderPrograms[m_curr_prog]);
+            cout << "F";
+        }
+        else if(s[i]=='R'){
+            cout << "R";
+        }
+        else if(s[i]=='L'){
+            cout << "L";
+        }
+        else if(s[i]=='['){
+            cout << "[";
+        }
+        else if(s[i]==']'){
+            cout << "]";
+        }
+    }
+
+    cout << endl;
+    mstack.pop();   //restore original model
+    m_model=mstack.top();
 }
 
 void MyPanelOpenGL::paintGL(){
@@ -100,21 +130,21 @@ void MyPanelOpenGL::paintGL(){
 
 
     if(m_shapeMode==0){
-      m_sphere->draw(m_shaderPrograms[m_curr_prog]);
-      //m_square->draw(m_shaderProgram);
+        m_sphere->draw(m_shaderPrograms[m_curr_prog]);
+        //m_square->draw(m_shaderProgram);
     }
     else if(m_shapeMode==1){
-      m_square->draw(m_shaderPrograms[m_curr_prog]);
+        m_square->draw(m_shaderPrograms[m_curr_prog]);
     }
-		else if(m_shapeMode==2){
-      m_cylinder->draw(m_shaderPrograms[m_curr_prog]);
+    else if(m_shapeMode==2){
+        m_cylinder->draw(m_shaderPrograms[m_curr_prog]);
     }
-		else if(m_shapeMode==3){
-			drawTree();
-		}
-		else {
-			cout << "Can't draw imaginary unicorn" << endl;
-		}
+    else if(m_shapeMode==3){
+        drawTree();
+    }
+    else {
+        cout << "Can't draw imaginary unicorn" << endl;
+    }
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
