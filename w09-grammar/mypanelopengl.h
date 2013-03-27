@@ -10,6 +10,7 @@
 #include <QMatrix4x4>
 #include "common/sphere.h"
 #include "common/square.h"
+#include "common/cylinder.h"
 
 typedef QVector4D point4;
 typedef QVector4D color4;
@@ -37,10 +38,10 @@ private:
     /* simple test shapes */
     cs40::Sphere* m_sphere;
     cs40::Square* m_square;
+		cs40::Cylinder* m_cylinder;
 
-    int m_polymode;
-    int m_normal_map;
-    bool m_drawSphere;
+    int m_polyMode;
+    int m_shapeMode;
 
     GLuint m_textureID;
     GLuint m_normalMapID;
@@ -57,6 +58,8 @@ private:
     QGLShaderProgram *m_shaderPrograms[CS40_NUM_PROGS];
     int m_curr_prog; //current program ID
 
+	  /* draw sample grammar */
+    void drawTree();
 
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */

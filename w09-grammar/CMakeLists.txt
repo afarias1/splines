@@ -24,8 +24,6 @@ set(SRC
 set(SHADERS
   vshader.glsl
   fshader.glsl
-  vshader2.glsl
-  fshader2.glsl
 )
 
 SET(MYLIBS ${EXT_LIBS} libcommon common_rgb common_noise)

@@ -1,4 +1,5 @@
 #include "mypanelopengl.h"
+#include "common/matrixstack.h"
 #include <cmath>
 #include <iostream>
 
@@ -6,9 +7,11 @@ using std::cout;
 using std::endl;
 using cs40::Sphere;
 using cs40::Square;
+using cs40::Cylinder;
+using cs40::MatrixStack;
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
-    QGLWidget(parent), m_angles(-125.,0.,0.) {
+    QGLWidget(parent), m_angles(0,0.,0.) {
 
     for(int i=0; i<CS40_NUM_PROGS; i++){
         m_shaderPrograms[i]=NULL;
@@ -17,16 +20,18 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     }
 
     m_sphere = NULL;
-    m_drawSphere = true;
-    m_polymode = 2;
+		m_square = NULL;
+		m_cylinder = NULL;
+    m_shapeMode = 2;
+    m_polyMode = 2;
     m_curr_prog = 0;
-    m_normal_map = 0;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
     m_shaderPrograms[m_curr_prog]->release();
     delete m_sphere; m_sphere=NULL;
     delete m_square; m_square=NULL;
+    delete m_cylinder; m_cylinder=NULL;
     destroyShaders(0); destroyShaders(1);
 }
 
@@ -35,13 +40,14 @@ void MyPanelOpenGL::initializeGL()
     glewInit(); //manually do this now that we aren't using QtOpenGL
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
-    updatePolyMode(m_polymode);
+    updatePolyMode(m_polyMode);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders(0, "vshader.glsl", "fshader.glsl");
 
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
+    m_cylinder = new Cylinder(0.25,0.7,30,30);
     m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
     m_normalMapID = bindTexture(QPixmap("data/beady.jpg"), GL_TEXTURE_2D);
 
@@ -63,6 +69,19 @@ void MyPanelOpenGL::resizeGL(int w, int h)
     glViewport(0,0,w, h);
 }
 
+void MyPanelOpenGL::drawTree(){
+	  MatrixStack mstack;
+		mstack.top() = m_model;
+		mstack.push();
+		mstack.pop();
+    mat4 mview = m_camera*m_model;
+    m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",
+				mview.normalMatrix());
+		m_cylinder->draw(m_shaderPrograms[m_curr_prog]);
+}
+
 void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -79,13 +98,23 @@ void MyPanelOpenGL::paintGL(){
     m_shaderPrograms[m_curr_prog]->setUniformValue("Tex1",1);
     m_shaderPrograms[m_curr_prog]->setUniformValue("lightPos",vec4(1.5,0,2,1.)); //in world coordinates
 
-    if(m_drawSphere){
+
+    if(m_shapeMode==0){
       m_sphere->draw(m_shaderPrograms[m_curr_prog]);
       //m_square->draw(m_shaderProgram);
     }
-    else{
+    else if(m_shapeMode==1){
       m_square->draw(m_shaderPrograms[m_curr_prog]);
     }
+		else if(m_shapeMode==2){
+      m_cylinder->draw(m_shaderPrograms[m_curr_prog]);
+    }
+		else if(m_shapeMode==3){
+			drawTree();
+		}
+		else {
+			cout << "Can't draw imaginary unicorn" << endl;
+		}
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
@@ -114,11 +143,11 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
         else{glEnable(GL_CULL_FACE);}
         break;
     case Qt::Key_P:
-        m_polymode = (m_polymode+1)%3;
-        updatePolyMode(m_polymode);
+        m_polyMode = (m_polyMode+1)%3;
+        updatePolyMode(m_polyMode);
         break;
     case Qt::Key_S:
-        m_drawSphere = !m_drawSphere;
+        m_shapeMode = (m_shapeMode+1)%4;
         break;
     case Qt::Key_V:
         m_curr_prog = (m_curr_prog+1)%CS40_NUM_PROGS;
