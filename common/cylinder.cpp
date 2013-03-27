@@ -51,7 +51,7 @@ Cylinder::Cylinder(float radius, float height, int slices, int stacks):
             texX+=texXstep;
         }
         //move up
-				y0 = y1;
+        y0 = y1;
         texY+=texYstep;
     }
 
@@ -67,11 +67,11 @@ Cylinder::Cylinder(float radius, float height, int slices, int stacks):
         sinlong = m_radius*sin(lng);
         vertices[idx]=vec3(sinlong, m_height, coslong);
         normals[idx]=vec3(0,1.,0.);
-        texCoords[idx++]=vec2(0.5,1); 
+        texCoords[idx++]=vec2(0.5,1);
         lng+=longstep;
     }
 
-		/* lower cap */
+    /* lower cap */
     vertices[idx]=vec3(0,0,0);
     normals[idx]=vec3(0,-1.,0.);
     texCoords[idx++]=vec2(0.5,0);
@@ -81,31 +81,31 @@ Cylinder::Cylinder(float radius, float height, int slices, int stacks):
         sinlong = m_radius*sin(lng);
         vertices[idx]=vec3(sinlong, 0, coslong);
         normals[idx]=vec3(0,-1.,0.);
-        texCoords[idx++]=vec2(0.5,0); 
+        texCoords[idx++]=vec2(0.5,0);
         lng-=longstep;
     }
- 
+
     if(initVBO()){
-			/* all mid lat strips */
-			int DataSize = m_stripsize*(m_stacks)*sizeof(vec3); 
-			/* two polar fans*/
-			DataSize += 2*(m_slices+2)*sizeof(vec3); 
+        /* all mid lat strips */
+        int DataSize = m_stripsize*(m_stacks)*sizeof(vec3);
+        /* two polar fans*/
+        DataSize += 2*(m_slices+2)*sizeof(vec3);
 
-			/* size of Texture */
-			/* all mid lat strips */
-			int TexSize = m_stripsize*(m_stacks)*sizeof(vec2);
-			/* two polar fans*/
-			TexSize += 2*(m_slices+2)*sizeof(vec2);
+        /* size of Texture */
+        /* all mid lat strips */
+        int TexSize = m_stripsize*(m_stacks)*sizeof(vec2);
+        /* two polar fans*/
+        TexSize += 2*(m_slices+2)*sizeof(vec2);
 
-			/* size of Normals */
-			int NormalSize = DataSize;
-			//cout << "DataSize: " << DataSize + TexSize << endl;
-			m_vbo->bind();
-			m_vbo->allocate(DataSize+TexSize+NormalSize);
-			m_vbo->write(0,vertices,DataSize);
-			m_vbo->write(DataSize,texCoords,TexSize);
-			m_vbo->write(DataSize+TexSize,normals,NormalSize);
-			m_vbo->release();
+        /* size of Normals */
+        int NormalSize = DataSize;
+        //cout << "DataSize: " << DataSize + TexSize << endl;
+        m_vbo->bind();
+        m_vbo->allocate(DataSize+TexSize+NormalSize);
+        m_vbo->write(0,vertices,DataSize);
+        m_vbo->write(DataSize,texCoords,TexSize);
+        m_vbo->write(DataSize+TexSize,normals,NormalSize);
+        m_vbo->release();
     }
 
     delete [] vertices; vertices=NULL;
@@ -139,9 +139,9 @@ void Cylinder::draw(QGLShaderProgram* prog){
     prog->setAttributeBuffer("vTexture",GL_FLOAT,nverts*sizeof(vec3),2,0);
     prog->enableAttributeArray("vNormal");
     prog->setAttributeBuffer("vNormal",GL_FLOAT,
-				nverts*(sizeof(vec3)+sizeof(vec2)),3,0);
+                             nverts*(sizeof(vec3)+sizeof(vec2)),3,0);
     for(int i=0; i<m_stacks; i++){
-      glDrawArrays(GL_TRIANGLE_STRIP,i*m_stripsize, m_stripsize);
+        glDrawArrays(GL_TRIANGLE_STRIP,i*m_stripsize, m_stripsize);
     }
     int offset = (m_stacks)*m_stripsize;
     int fansize = m_slices+2;

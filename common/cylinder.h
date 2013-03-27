@@ -33,6 +33,7 @@ public:
     inline vec4 getAmbientAndDiffuseColor() const { return m_color; }
 
     inline vec4 getSpecularColor() const {return m_spec_color;}
+
 private:
 
     /* Generate Vertex Buffer Objects, but do not bind/allocate.
@@ -46,7 +47,7 @@ protected:
     vec4 m_spec_color;
     QGLBuffer *m_vbo;
     float m_radius;
-		float m_height;
+    float m_height;
     int m_slices;
     int m_stacks;
     int m_stripsize; //num vertices per horizontal strip;

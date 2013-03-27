@@ -14,9 +14,9 @@ public:
 
     QMatrix4x4& top();
 
-		inline int size(){return m_stack.size();}
+    inline int size(){return m_stack.size();}
 
-		/* push copy of top onto stack */
+    /* push copy of top onto stack */
     void push();
 
     /* pop top element off stack */
@@ -26,38 +26,38 @@ public:
      * all matrix tranforms multiply on the right
      * of top */
     inline void translate(float dx, float dy, float dz=0.){
-			top().translate(dx,dy,dz);
-	  }
+        top().translate(dx,dy,dz);
+    }
     
-		inline void translate(const QVector3D& displace){
-			top().translate(displace);
-	  }
+    inline void translate(const QVector3D& displace){
+        top().translate(displace);
+    }
 
 
     /* scales matrix at top of stack in place */
     inline void scale(float xfac, float yfac=1., float zfac=1.){
-			top().scale(xfac,yfac,zfac);
-		}
+        top().scale(xfac,yfac,zfac);
+    }
 
-		inline void scale(const QVector3D& vec){
-			top().scale(vec);
-		}
+    inline void scale(const QVector3D& vec){
+        top().scale(vec);
+    }
 
-		inline void rotate(float angle, const QVector3D& vector){
-      top().rotate(angle, vector);
-		}
+    inline void rotate(float angle, const QVector3D& vector){
+        top().rotate(angle, vector);
+    }
 
-		inline void rotateX(float angle){
-      top().rotate(angle, QVector3D(1.,0.,0.));
-		}
-		
-		inline void rotateY(float angle){
-      top().rotate(angle, QVector3D(0.,1.,0.));
-		}
-		
-		inline void rotateZ(float angle){
-      top().rotate(angle, QVector3D(0.,0.,1.));
-		}
+    inline void rotateX(float angle){
+        top().rotate(angle, QVector3D(1.,0.,0.));
+    }
+
+    inline void rotateY(float angle){
+        top().rotate(angle, QVector3D(0.,1.,0.));
+    }
+
+    inline void rotateZ(float angle){
+        top().rotate(angle, QVector3D(0.,0.,1.));
+    }
 
 
 private:
