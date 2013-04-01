@@ -32,4 +32,5 @@ add_subdirectory(common)
 add_subdirectory(w07-lighting)
 add_subdirectory(w08-noise)
 add_subdirectory(w09-grammar)
+add_subdirectory(w10-particles)
 
