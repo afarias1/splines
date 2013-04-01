@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QGLWidget>
 #include <QMatrix4x4>
+#include <QTimer>
 #include "common/sphere.h"
 
 typedef QVector4D point4;
@@ -39,6 +40,8 @@ private:
     /* particle fountain VBO */
     QGLBuffer* m_fountain;
     int m_nparticles;
+    QTimer* m_timer;
+    float m_time;
 
     int m_polyMode;
 
@@ -80,6 +83,7 @@ private:
 signals:
     
 public slots:
+    void step();
 
 };
 

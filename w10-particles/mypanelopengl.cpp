@@ -22,12 +22,15 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     m_curr_prog = 0;
     m_nparticles = 100;
     m_fountain = NULL;
+    m_timer = NULL;
+    m_time = 0;
     srand(time(NULL));
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
     m_shaderPrograms[m_curr_prog]->release();
     delete m_sphere; m_sphere=NULL;
+    delete m_timer; m_timer=NULL;
     if(m_fountain){
         m_fountain->release();
         delete m_fountain; m_fountain=NULL;
@@ -54,6 +57,16 @@ void MyPanelOpenGL::initializeGL()
     m_projection.perspective(40,1,1,8);
     m_camera.lookAt(vec3(0,0,3),vec3(0,0,0),vec3(0,1.,0.));
     updateModel();
+
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(step()));
+    m_timer->start(10);
+}
+
+void MyPanelOpenGL::step(){
+    m_time += 0.005;
+    updateAngles(0,0.5);
+    updateGL();
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
