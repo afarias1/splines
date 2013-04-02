@@ -16,7 +16,7 @@ typedef QVector4D color4;
 typedef QVector3D vec3;
 typedef QMatrix4x4 mat4;
 
-#define CS40_NUM_PROGS 1
+#define CS40_NUM_PROGS 2
 
 class MyPanelOpenGL : public QGLWidget
 {
@@ -42,6 +42,8 @@ private:
     int m_nparticles;
     QTimer* m_timer;
     float m_time;
+    GLuint m_texture;
+
 
     int m_polyMode;
 
@@ -60,6 +62,7 @@ private:
     float randFloat();
     void makeFountain();
     void drawFountain();
+    void updateTime();
 
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */
