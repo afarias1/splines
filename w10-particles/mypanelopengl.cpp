@@ -52,9 +52,6 @@ void MyPanelOpenGL::initializeGL()
     createShaders(1, "vshader2.glsl", "fshader2.glsl");
 
     QPixmap img("data/ball.png");
-    if(img.hasAlphaChannel()){
-        cout << "Alpha!" << endl;
-    }
     m_texture = bindTexture(img, GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_texture);
@@ -180,7 +177,7 @@ void MyPanelOpenGL::makeFountain(){
     float *data = new float[m_nparticles*3]; //Initial velocities of particles
     for (int i=0; i<m_nparticles; i++){
         theta = randFloat()*M_PI/8+0.2;
-        phi = 0*randFloat()*2*M_PI;
+        phi = randFloat()*2*M_PI;
         v.setX(sin(theta)*cos(phi));
         v.setY(cos(theta));
         v.setZ(sin(theta)*sin(phi));
