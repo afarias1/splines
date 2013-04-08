@@ -7,6 +7,7 @@ uniform vec4 vSColor; //specular color
 in vec3 N;
 in vec3 L;
 in vec3 E;
+in float transparency;
 
 out vec4 fragColor;
 
@@ -16,9 +17,12 @@ void main()
     vec4 baseColor=vColor;
     baseColor = vColor*texture(Tex0,gl_PointCoord);
     //baseColor = vec4(baseC./o,baseColor.w);
-    if(baseColor.w<0.5){
+    if(baseColor.a<0.5){
         discard;
     }
+	
+		//baseColor = vec4(transparency, transparency, transparency, 1);
+	  //baseColor.a *= transparency;
 
     vec4 ambient, diffuse, specular;
 
@@ -35,6 +39,6 @@ void main()
     specular = vec4(0,0,0,1);
     if(dot(LL,NN) > 0){ specular = vSColor*Ks*0.3; }
 
-    fragColor = vec4((ambient+diffuse).xyz,1);
+    fragColor = vec4((ambient+diffuse).xyz,transparency);
 } 
 

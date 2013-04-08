@@ -112,6 +112,9 @@ void MyPanelOpenGL::paintGL(){
        updatePolyMode(2);
        glPointSize(10);
        glEnable(GL_POINT_SPRITE);
+       glEnable(GL_BLEND);
+			 glDepthMask(GL_FALSE);
+			 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
        drawFountain();
     }
 
