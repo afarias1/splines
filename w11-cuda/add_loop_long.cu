@@ -16,7 +16,7 @@
 
 #include "book.h"
 
-#define N   (32 * 1024)
+#define N   (32 * 1024 * 1024)
 
 __global__ void add( int *a, int *b, int *c ) {
     int tid = blockIdx.x;
@@ -29,6 +29,8 @@ __global__ void add( int *a, int *b, int *c ) {
 int main( void ) {
     int *a, *b, *c;
     int *dev_a, *dev_b, *dev_c;
+    cudaEvent_t start,stop;
+float elapsed_ms; //elapsed time in milliseconds
 
     // allocate the memory on the CPU
     a = (int*)malloc( N * sizeof(int) );
@@ -51,8 +53,19 @@ int main( void ) {
                               cudaMemcpyHostToDevice ) );
     HANDLE_ERROR( cudaMemcpy( dev_b, b, N * sizeof(int),
                               cudaMemcpyHostToDevice ) );
+    
+    HANDLE_ERROR( cudaEventCreate(&start) );
+    HANDLE_ERROR( cudaEventCreate(&stop) );
+    HANDLE_ERROR( cudaEventRecord(start,0) );
 
     add<<<128,1>>>( dev_a, dev_b, dev_c );
+    HANDLE_ERROR( cudaEventRecord(stop,0) );
+    HANDLE_ERROR( cudaEventSynchronize(stop) );
+    HANDLE_ERROR( cudaEventElapsedTime(&elapsed_ms, start, stop) );
+    printf("Time to run kernel: %3.1f ms\n", elapsed_ms);
+
+    HANDLE_ERROR( cudaEventDestroy(start) );
+    HANDLE_ERROR( cudaEventDestroy(stop) );
 
     // copy the array 'c' back from the GPU to the CPU
     HANDLE_ERROR( cudaMemcpy( c, dev_c, N * sizeof(int),

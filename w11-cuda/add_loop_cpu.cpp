@@ -15,9 +15,11 @@
 
 
 #include <cstdio>
+#include <iostream>
+#include "timer.h"
 using namespace std;
 
-#define N   10
+#define N   32*1024*1024
 
 void add( int *a, int *b, int *c ) {
     int tid = 0;    // this is CPU zero, so we start at zero
@@ -28,7 +30,13 @@ void add( int *a, int *b, int *c ) {
 }
 
 int main( void ) {
-    int a[N], b[N], c[N];
+    int* a, *b, *c;
+
+		a= new int[N];
+		b= new int[N];
+		c= new int[N];
+
+		Timer watch;
 
     // fill the arrays 'a' and 'b' on the CPU
     for (int i=0; i<N; i++) {
@@ -36,12 +44,21 @@ int main( void ) {
         b[i] = i * i;
     }
 
+		watch.start();
     add( a, b, c );
+		float time = watch.elapsed();
+		watch.stop();
+		cout << "kernel CPU took "<< time*1000 << " ms " << endl;
 
     // display the results
+		if(N < 100){
     for (int i=0; i<N; i++) {
         printf( "%d + %d = %d\n", a[i], b[i], c[i] );
     }
+		}
 
+		delete [] a; a=NULL;
+		delete [] b; b=NULL;
+		delete [] c; c=NULL;
     return 0;
 }

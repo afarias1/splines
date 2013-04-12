@@ -1,5 +1,5 @@
-find_package(GLUT REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(GLUT REQUIRED)
 
 # Note set CUDA_BUILD_EMULATION to OFF to enable Device mode compilation.
 #set(CUDA_SDK /usr/local/src/NVIDIA_CUDA_SDK)
@@ -31,7 +31,7 @@ foreach(PROG ${EASYPROGS})
 endforeach()
 
 #CS35 stuff. with CMake
-add_executable(add_loop_cpu add_loop_cpu.cpp)
+add_executable(add_loop_cpu add_loop_cpu.cpp timer.cpp timer.h)
 
 #CS40 stuff. link against opengl
 add_executable(julia_cpu julia_cpu.cpp timer.h timer.cpp cpu_bitmap.h)
