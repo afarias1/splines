@@ -30,7 +30,7 @@ foreach(PROG ${EASYPROGS})
  target_link_libraries(${PROG} mycuda)
 endforeach()
 
-set(GPROG ripple shared_bitmap)
+set(GPROG ripple shared_bitmap ray ray_noconst)
 
 foreach(PROG ${GPROG})
   cuda_add_executable(${PROG} ${PROG}.cu ${HDRS})
