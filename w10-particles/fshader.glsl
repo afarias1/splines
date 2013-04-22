@@ -13,7 +13,7 @@ out vec4 fragColor;
 
 void main() 
 {
-    vec4 baseColor=vColor;
+    vec4 baseColor=vec4(1,1,1,1);
     vec4 ambient, diffuse, specular;
 
     vec3 NN = normalize(N);
