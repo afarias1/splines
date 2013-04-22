@@ -19,7 +19,7 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
 
     m_sphere = NULL;
     m_polyMode = 0;
-    m_curr_prog = 0;
+    m_curr_prog = 1;
     m_nparticles = 100;
     m_fountain = NULL;
     m_timer = NULL;
@@ -49,8 +49,11 @@ void MyPanelOpenGL::initializeGL()
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders(0, "vshader.glsl", "fshader.glsl");
+    createShaders(1, "vshader2.glsl", "fshader2.glsl");
+    makeFountain();
 
     m_sphere = new Sphere(0.5,30,30);
+
 
     m_shaderPrograms[m_curr_prog]->bind();
 
@@ -64,8 +67,8 @@ void MyPanelOpenGL::initializeGL()
 }
 
 void MyPanelOpenGL::step(){
-    m_time += 0.005;
-    updateAngles(0,0.5);
+    m_time += 0.01;
+    //updateAngles(0,0.5);
     updateGL();
 }
 
@@ -91,8 +94,11 @@ void MyPanelOpenGL::paintGL(){
     m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
     m_shaderPrograms[m_curr_prog]->setUniformValue("lightPos",vec4(1.5,0,2,1.)); //in world coordinates
 
-    m_sphere->draw(m_shaderPrograms[m_curr_prog]);
-
+    if(m_curr_prog==0){
+       m_sphere->draw(m_shaderPrograms[m_curr_prog]);
+    }else{
+       drawFountain();
+    }
     glFlush();
 
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
@@ -165,7 +171,7 @@ void MyPanelOpenGL::makeFountain(){
     }
 
     float *times = new float[m_nparticles]; //Initial start time of particles
-    float time_now = 0, time_step=0.00075;
+    float time_now = 0, time_step=0.0035;
     for (int i=0; i<m_nparticles; i++){
         times[i] = time_now;
         time_now += time_step;
@@ -182,8 +188,9 @@ void MyPanelOpenGL::drawFountain(){
     m_fountain->bind();
     m_shaderPrograms[m_curr_prog]->setUniformValue("vColor",vec3(0.8,0.8,1.));
     m_shaderPrograms[m_curr_prog]->setUniformValue("vSColor",vec3(1.,1.,1.));
-    m_shaderPrograms[m_curr_prog]->enableAttributeArray("vPosition");
-    m_shaderPrograms[m_curr_prog]->setAttributeBuffer("vPosition",GL_FLOAT,0,3,0);
+    m_shaderPrograms[m_curr_prog]->enableAttributeArray("velocity");
+    m_shaderPrograms[m_curr_prog]->setAttributeBuffer("velocity",GL_FLOAT,0,3,0);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("global_time", m_time);
     glDrawArrays(GL_POINTS, 0, m_nparticles);
     m_fountain->release();
 }
