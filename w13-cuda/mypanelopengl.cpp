@@ -32,7 +32,7 @@ MyPanelOpenGL::~MyPanelOpenGL(){
     destroyShaders(0);
     m_wrapper.disconnect();
     destroyPBO();
-    glDeleteTextures(1,&m_textureID2);
+    //glDeleteTextures(1,&m_textureID2);
 }
 
 void MyPanelOpenGL::initializeGL()
@@ -48,6 +48,8 @@ void MyPanelOpenGL::initializeGL()
 
     m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
 
+    //m_textureID2 = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
+
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
 
@@ -58,20 +60,15 @@ void MyPanelOpenGL::initializeGL()
     m_camera.lookAt(vec3(0,0,3),vec3(0,0,0),vec3(0,1.,0.));
     updateModel();
 
+
+
+
+
     createPBO();
 
 
-    glGenTextures(1,&m_textureID2);
-    glBindTexture(GL_TEXTURE_2D, m_textureID2);
-    // Allocate the texture memory. The last parameter is NULL since we only
-    // want to allocate memory, not initialize it
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_pboSize, m_pboSize, 0,
-                GL_BGRA,GL_UNSIGNED_BYTE, NULL);
-
-
-
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
-    setAutoBufferSwap(false);
+    //glBindTexture(GL_TEXTURE_2D, m_textureID);
+    //setAutoBufferSwap(false);
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -83,16 +80,6 @@ void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_pbo->release();
-
-    m_wrapper.run(-0.8,0.156);
-    swapBuffers();
-    m_pbo->bind();
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
-    //bind texture from PBO
-    glBindTexture(GL_TEXTURE_2D, m_textureID2);
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
-             GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 
     if(!m_shaderPrograms[m_curr_prog]){return;}
@@ -116,7 +103,7 @@ void MyPanelOpenGL::paintGL(){
     }
     glFlush();
 
-    swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
+    //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
 }
 
 
@@ -236,6 +223,42 @@ void MyPanelOpenGL::createPBO(){
     m_pbo->bind();
     m_pbo->allocate(numBytes);
     m_wrapper.connect(m_pbo->bufferId(),m_pboSize);
+
+    m_pbo->release();
+
+    m_wrapper.run(0,0);
+    swapBuffers();
+    m_pbo->bind();
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
+    //bind texture from PBO
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+
+
+    GLubyte *buf = new GLubyte[numBytes];
+    m_pbo->read(0,buf,numBytes);
+    int chk=0;
+    for(int i=0; i< numBytes; i++){
+        if(buf[i]!=255 && i%4==0){
+            chk++;
+            //cout << i << " " << (int)buf[i] << endl;
+        }
+    }
+    cout << chk << endl;
+
+    glGenTextures(1,&m_textureID2);
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+    QImage woot=QGLWidget::convertToGLFormat(QImage("data/earth.png"));
+    // Allocate the texture memory. The last parameter is NULL since we only
+    // want to allocate memory, not initialize it
+    glTexImage2D( GL_TEXTURE_2D, 0, 4, woot.width(), woot.height(), 0,
+                  GL_BGRA,GL_UNSIGNED_BYTE, woot.bits());
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
+    //                                        GL_RGBA, GL_UNSIGNED_BYTE, buf);
+
+
+    glBindTexture(GL_TEXTURE_2D,m_textureID2);
 }
 
 void MyPanelOpenGL::destroyPBO(){

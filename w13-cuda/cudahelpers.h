@@ -14,6 +14,7 @@ class MyCUDAWrapper{
 	private:
 	struct cudaGraphicsResource* m_pbo_CUDA;
   int m_size;
+	GLuint m_id;
 
 };
 

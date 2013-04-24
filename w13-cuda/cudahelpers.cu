@@ -16,7 +16,9 @@ void MyCUDAWrapper::init(){
 void MyCUDAWrapper::connect(GLuint buffID, int nrows){
     if(m_pbo_CUDA){ disconnect(); }
     cudaGraphicsGLRegisterBuffer(&m_pbo_CUDA,buffID,cudaGraphicsRegisterFlagsNone);
+    //cudaGLRegisterBufferObject(buffID);
     m_size=nrows;
+    m_id = buffID;
 }
 
 void MyCUDAWrapper::disconnect(){
@@ -30,16 +32,17 @@ void MyCUDAWrapper::run(float a, float b){
     unsigned char* dev_pixBuffer;
     size_t numBytes;
     dim3    grid(DIM,DIM);
+    //cudaGLMapBufferObject((void**)&dev_pixBuffer, m_id);
+   
     cudaGraphicsMapResources(1, &m_pbo_CUDA);
     cudaGraphicsResourceGetMappedPointer((void**)&dev_pixBuffer,
                                           &numBytes,
                                           m_pbo_CUDA);
-
+  
     printf("Calling kernel\n");
-    printf("nb %d\n", numBytes);
     kernel<<<grid,1>>>( dev_pixBuffer, a, b);
     cudaThreadSynchronize();
-    // Unmap buffer object
+    //cudaGLUnmapBufferObject(m_id);
     cudaGraphicsUnmapResources(1, &m_pbo_CUDA);
 }
 
