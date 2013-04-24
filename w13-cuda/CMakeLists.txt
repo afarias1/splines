@@ -13,7 +13,9 @@ link_directories(${CUDA_SDK}/lib/)
 set(HDRS book.h cpu_anim.h cpu_bitmap.h gl_helper.h gpu_anim.h
   timer.h)
 
-cuda_add_library(mycuda13 timer.h book.h book.cu timer.cu)
+cuda_add_library(mycuda13 
+  cudahelpers.h timer.h book.h 
+  cudahelpers.cu book.cu timer.cu)
 
 set(GPROG heat)
 
@@ -50,7 +52,7 @@ set(SHADERS
 
 ADD_EXECUTABLE(interop ${SRC} ${SHDRS} ${MYQTFILES} ${SHADERS})
 
-TARGET_LINK_LIBRARIES(interop ${EXT_LIBS} libcommon)
+TARGET_LINK_LIBRARIES(interop ${EXT_LIBS} libcommon mycuda13)
 
 symlink_data(interop_shaders *.glsl)
 symlink_data(interop_data data)

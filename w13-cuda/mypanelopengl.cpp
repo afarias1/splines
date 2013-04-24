@@ -30,11 +30,14 @@ MyPanelOpenGL::~MyPanelOpenGL(){
     delete m_sphere; m_sphere=NULL;
     delete m_square; m_square=NULL;
     destroyShaders(0);
+    m_wrapper.disconnect();
     destroyPBO();
+    glDeleteTextures(1,&m_textureID2);
 }
 
 void MyPanelOpenGL::initializeGL()
 {
+    m_wrapper.init();
     glewInit(); //manually do this now that we aren't using QtOpenGL
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
@@ -43,12 +46,11 @@ void MyPanelOpenGL::initializeGL()
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders(0, "vshader.glsl", "fshader.glsl");
 
-    m_sphere = new Sphere(0.5,30,30);
-    m_square = new Square(1.);
     m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
 
-    //fixed by using glew, glext instead of QtOpenGL
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    m_sphere = new Sphere(0.5,30,30);
+    m_square = new Square(1.);
+
 
     m_shaderPrograms[m_curr_prog]->bind();
 
@@ -57,6 +59,19 @@ void MyPanelOpenGL::initializeGL()
     updateModel();
 
     createPBO();
+
+
+    glGenTextures(1,&m_textureID2);
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+    // Allocate the texture memory. The last parameter is NULL since we only
+    // want to allocate memory, not initialize it
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_pboSize, m_pboSize, 0,
+                GL_BGRA,GL_UNSIGNED_BYTE, NULL);
+
+
+
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    setAutoBufferSwap(false);
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -67,6 +82,18 @@ void MyPanelOpenGL::resizeGL(int w, int h)
 void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    m_pbo->release();
+
+    m_wrapper.run(-0.8,0.156);
+    swapBuffers();
+    m_pbo->bind();
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
+    //bind texture from PBO
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
+             GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
 
     if(!m_shaderPrograms[m_curr_prog]){return;}
     m_shaderPrograms[m_curr_prog]->bind();
@@ -89,7 +116,7 @@ void MyPanelOpenGL::paintGL(){
     }
     glFlush();
 
-    //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
+    swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
 }
 
 
@@ -203,10 +230,12 @@ void MyPanelOpenGL::destroyShaders(int i){
 void MyPanelOpenGL::createPBO(){
     destroyPBO(); //get rid of any old buffer
 
+    int numBytes = sizeof(GLubyte)*4*m_pboSize*m_pboSize;
     m_pbo = new QGLBuffer(QGLBuffer::PixelUnpackBuffer);
     m_pbo->create();
     m_pbo->bind();
-    m_pbo->allocate(sizeof(GLubyte)*4*m_pboSize*m_pboSize);
+    m_pbo->allocate(numBytes);
+    m_wrapper.connect(m_pbo->bufferId(),m_pboSize);
 }
 
 void MyPanelOpenGL::destroyPBO(){

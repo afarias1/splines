@@ -10,6 +10,7 @@
 #include <QMatrix4x4>
 #include "common/sphere.h"
 #include "common/square.h"
+#include "cudahelpers.h"
 
 typedef QVector4D point4;
 typedef QVector4D color4;
@@ -42,8 +43,11 @@ private:
     bool m_drawSphere;
 
     GLuint m_textureID;
+    GLuint m_textureID2;
+
     QGLBuffer* m_pbo; /* Pixel Buffer Object */
     int m_pboSize;
+    MyCUDAWrapper m_wrapper;
 
     vec3 m_angles; /* Euler angles for rotation */
 
