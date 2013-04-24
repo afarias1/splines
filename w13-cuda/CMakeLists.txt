@@ -57,7 +57,3 @@ TARGET_LINK_LIBRARIES(interop ${EXT_LIBS} libcommon mycuda13)
 symlink_data(interop_shaders *.glsl)
 symlink_data(interop_data data)
 
-cuda_add_executable(julia_gpu2 julia_gpu.cu ${HDRS})
-target_link_libraries(julia_gpu2 ${GLUT_LIBRARY} ${OPENGL_LIBRARY} m mycuda13)
-
-

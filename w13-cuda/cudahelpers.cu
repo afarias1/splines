@@ -7,18 +7,15 @@
 __device__ int julia( int x, int y, float re, float im);
 __global__ void kernel( unsigned char *ptr, float re, float im);
 
-MyCUDAWrapper::MyCUDAWrapper():m_pbo_CUDA(NULL), m_size(0){};
+MyCUDAWrapper::MyCUDAWrapper():m_pbo_CUDA(NULL){};
 
 void MyCUDAWrapper::init(){
     cudaGLSetGLDevice(0);
 }
 
-void MyCUDAWrapper::connect(GLuint buffID, int nrows){
+void MyCUDAWrapper::connect(GLuint buffID){
     if(m_pbo_CUDA){ disconnect(); }
     cudaGraphicsGLRegisterBuffer(&m_pbo_CUDA,buffID,cudaGraphicsRegisterFlagsNone);
-    //cudaGLRegisterBufferObject(buffID);
-    m_size=nrows;
-    m_id = buffID;
 }
 
 void MyCUDAWrapper::disconnect(){
@@ -28,21 +25,20 @@ void MyCUDAWrapper::disconnect(){
 }
 
 void MyCUDAWrapper::run(float a, float b){
-    // Map buffer object for writing from CUDA
+
     unsigned char* dev_pixBuffer;
     size_t numBytes;
     dim3    grid(DIM,DIM);
-    //cudaGLMapBufferObject((void**)&dev_pixBuffer, m_id);
-   
+
+    // Map buffer object for writing from CUDA
     cudaGraphicsMapResources(1, &m_pbo_CUDA);
     cudaGraphicsResourceGetMappedPointer((void**)&dev_pixBuffer,
-                                          &numBytes,
-                                          m_pbo_CUDA);
-  
-    printf("Calling kernel\n");
+                                         &numBytes,
+                                         m_pbo_CUDA);
+
     kernel<<<grid,1>>>( dev_pixBuffer, a, b);
-    cudaThreadSynchronize();
-    //cudaGLUnmapBufferObject(m_id);
+    cudaThreadSynchronize(); //Make sure kernel is done
+    //Return PBO to OpenGL control.
     cudaGraphicsUnmapResources(1, &m_pbo_CUDA);
 }
 
@@ -90,7 +86,7 @@ __global__ void kernel( unsigned char *ptr, float re, float im ) {
     int juliaValue = julia( x, y, re, im);
     ptr[offset*4 + 0] = 255 * juliaValue;
     ptr[offset*4 + 1] = 0;
-    ptr[offset*4 + 2] = 0;
+    ptr[offset*4 + 2] = 64*(1-juliaValue);
     ptr[offset*4 + 3] = 255;
 }
 

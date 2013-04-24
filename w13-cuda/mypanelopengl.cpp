@@ -30,14 +30,16 @@ MyPanelOpenGL::~MyPanelOpenGL(){
     delete m_sphere; m_sphere=NULL;
     delete m_square; m_square=NULL;
     destroyShaders(0);
+    //Cleanup PBO/Texture
     m_wrapper.disconnect();
     destroyPBO();
-    //glDeleteTextures(1,&m_textureID2);
+    glDeleteTextures(1,&m_textureID2);
 }
 
 void MyPanelOpenGL::initializeGL()
 {
-    m_wrapper.init();
+    m_wrapper.init(); //Tell CUDA to connect with OpenGL
+
     glewInit(); //manually do this now that we aren't using QtOpenGL
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
@@ -47,12 +49,8 @@ void MyPanelOpenGL::initializeGL()
     createShaders(0, "vshader.glsl", "fshader.glsl");
 
     m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
-
-    //m_textureID2 = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
-
     m_sphere = new Sphere(0.5,30,30);
     m_square = new Square(1.);
-
 
     m_shaderPrograms[m_curr_prog]->bind();
 
@@ -60,15 +58,7 @@ void MyPanelOpenGL::initializeGL()
     m_camera.lookAt(vec3(0,0,3),vec3(0,0,0),vec3(0,1.,0.));
     updateModel();
 
-
-
-
-
-    createPBO();
-
-
-    //glBindTexture(GL_TEXTURE_2D, m_textureID);
-    //setAutoBufferSwap(false);
+    createPBO(); //Setup Pixel Buffer on GPU
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -79,8 +69,6 @@ void MyPanelOpenGL::resizeGL(int w, int h)
 void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 
     if(!m_shaderPrograms[m_curr_prog]){return;}
     m_shaderPrograms[m_curr_prog]->bind();
@@ -217,52 +205,42 @@ void MyPanelOpenGL::destroyShaders(int i){
 void MyPanelOpenGL::createPBO(){
     destroyPBO(); //get rid of any old buffer
 
+    //Create PBO
     int numBytes = sizeof(GLubyte)*4*m_pboSize*m_pboSize;
-    m_pbo = new QGLBuffer(QGLBuffer::PixelUnpackBuffer);
+    m_pbo = new QGLBuffer(QGLBuffer::PixelUnpackBuffer); //Used for reading Texture data
     m_pbo->create();
     m_pbo->bind();
     m_pbo->allocate(numBytes);
-    m_wrapper.connect(m_pbo->bufferId(),m_pboSize);
-
-    m_pbo->release();
-
-    m_wrapper.run(-0.8,0.156);
-    swapBuffers();
-    m_pbo->bind();
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
-    //bind texture from PBO
-    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+    m_wrapper.connect(m_pbo->bufferId()); //Inform CUDA about PBO
 
 
-    GLubyte *buf = new GLubyte[numBytes];
-    m_pbo->read(0,buf,numBytes);
-    int chk=0;
-    for(int i=0; i< numBytes; i++){
-        if(buf[i]!=255 && i%4==0){
-            chk++;
-            //cout << i << " " << (int)buf[i] << endl;
-        }
-    }
-    cout << chk << endl;
-
+    //Create ID, allocate space for Texture
     glGenTextures(1,&m_textureID2);
     glBindTexture(GL_TEXTURE_2D, m_textureID2);
-    QImage woot=QGLWidget::convertToGLFormat(QImage("data/earth.png"));
+
     // Allocate the texture memory. The last parameter is NULL since we only
     // want to allocate memory, not initialize it
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_pboSize, m_pboSize, 0,
                   GL_RGBA,GL_UNSIGNED_BYTE, NULL);
-    int err = glGetError();
-    cout << err << " " << glewGetErrorString(glGetError()) << endl;
+
+    //int err = glGetError();
+    //cout << err << " " << glewGetErrorString(glGetError()) << endl;
+
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    // These last two are critical for textures whose dimension are not a power of 2
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+
+    // Run CUDA kernel to populate PBO
+    m_wrapper.run(-0.8,0.156);
+    //Read Texture data from PBO
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);    
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
-                                            GL_RGBA, GL_UNSIGNED_BYTE, buf);
+                                            GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-
-    glBindTexture(GL_TEXTURE_2D,m_textureID2);
 }
 
 void MyPanelOpenGL::destroyPBO(){
