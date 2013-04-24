@@ -1,33 +1,32 @@
+<<<<<<< HEAD
 #version 130
+=======
+#version 150
 
 uniform mat4 model;
 uniform mat4 camera;
 uniform mat4 projection;
 uniform mat3 normalMatrix;
 uniform mat4 modelView;
-uniform float global_time;
-uniform vec3 gravity = vec3(0,-1.2,0);
 
-uniform vec4 lightPos;
-
-in vec3 velocity;
-in float startTime;
-
-
-out vec3 N;
-out vec3 L;
-out vec3 E;
-
+out float transparency;
 
 void main() 
 {
-
-    N = normalMatrix*vec3(0,0,1);
-       vec4 vPosition = vec4(velocity,1);
+    vec3 vNormal=vec3(0,0,1);
+    N = normalMatrix*vNormal;
     L = (camera*lightPos).xyz-(modelView*vPosition).xyz;
     E = -(modelView*vPosition).xyz; //from pt to viewer
 
-    texCoord = vTexture;
+    vec3 vel = vPosition.xyz;
+    vec3 pos=vec3(0,0,0);
+    float t;
+    if(global_time > startTime){
+        t = mod(global_time - startTime,lifetime);
+        pos = vel*t + 0.5*gravity*t*t;
+				transparency = 1.0-t/(lifetime*lifetime);
+    }
+    gl_Position = projection*modelView*vec4(pos,1);
 
-    gl_Position = projection*modelView*vPosition;
+>>>>>>> dc6646583026f7f3b7449122db9cbd2be58b4c4c
 } 

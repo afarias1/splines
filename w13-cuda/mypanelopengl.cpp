@@ -1,15 +1,14 @@
 #include "mypanelopengl.h"
-#include "common/matrixstack.h"
 #include <cmath>
 #include <iostream>
 
 using std::cout;
 using std::endl;
 using cs40::Sphere;
-using cs40::MatrixStack;
+using cs40::Square;
 
 MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
-    QGLWidget(parent), m_angles(0,0.,0.) {
+    QGLWidget(parent), m_angles(-125.,0.,0.) {
 
     for(int i=0; i<CS40_NUM_PROGS; i++){
         m_shaderPrograms[i]=NULL;
@@ -18,46 +17,42 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     }
 
     m_sphere = NULL;
-    m_polyMode = 0;
-    m_curr_prog = 1;
-    m_nparticles = 2000;
-    m_fountain = NULL;
-    m_timer = NULL;
-    m_time = 0;
-    srand(time(NULL));
+    m_drawSphere = true;
+    m_polymode = 2;
+    m_curr_prog = 0;
+    m_tex_map = 0;
+    m_pbo = NULL;
+    m_pboSize = 1000;
+    m_real=-0.8;
+    m_imaginary=0.156;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
     m_shaderPrograms[m_curr_prog]->release();
     delete m_sphere; m_sphere=NULL;
-    delete m_timer; m_timer=NULL;
-    if(m_fountain){
-        m_fountain->release();
-        delete m_fountain; m_fountain=NULL;
-    }
-    for(int i=0; i<CS40_NUM_PROGS; i++){
-        destroyShaders(i);
-    }
+    delete m_square; m_square=NULL;
+    destroyShaders(0);
+    //Cleanup PBO/Texture
+    m_wrapper.disconnect();
+    destroyPBO();
+    glDeleteTextures(1,&m_textureID2);
 }
 
 void MyPanelOpenGL::initializeGL()
 {
+    m_wrapper.init(); //Tell CUDA to connect with OpenGL
+
     glewInit(); //manually do this now that we aren't using QtOpenGL
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
-    updatePolyMode(m_polyMode);
+    updatePolyMode(m_polymode);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     createShaders(0, "vshader.glsl", "fshader.glsl");
-    createShaders(1, "vshader2.glsl", "fshader2.glsl");
 
-    QPixmap img("data/ball.png");
-    m_texture = bindTexture(img, GL_TEXTURE_2D);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_texture);
-
+    m_textureID = bindTexture(QPixmap("data/earth.png"), GL_TEXTURE_2D);
     m_sphere = new Sphere(0.5,30,30);
-    makeFountain();
+    m_square = new Square(1.);
 
     m_shaderPrograms[m_curr_prog]->bind();
 
@@ -65,20 +60,7 @@ void MyPanelOpenGL::initializeGL()
     m_camera.lookAt(vec3(0,0,3),vec3(0,0,0),vec3(0,1.,0.));
     updateModel();
 
-    m_timer = new QTimer(this);
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(step()));
-    m_timer->start(10);
-}
-
-void MyPanelOpenGL::step(){
-    updateTime();
-    //updateAngles(0,0.5);
-    updateGL();
-}
-
-void MyPanelOpenGL::updateTime(){
-    m_time += 0.01;
-    //cout << m_time << endl;
+    createPBO(); //Setup Pixel Buffer on GPU
 }
 
 void MyPanelOpenGL::resizeGL(int w, int h)
@@ -86,13 +68,11 @@ void MyPanelOpenGL::resizeGL(int w, int h)
     glViewport(0,0,w, h);
 }
 
-
-
 void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+    setTexture();
     if(!m_shaderPrograms[m_curr_prog]){return;}
     m_shaderPrograms[m_curr_prog]->bind();
     mat4 mview = m_camera*m_model;
@@ -101,25 +81,19 @@ void MyPanelOpenGL::paintGL(){
     m_shaderPrograms[m_curr_prog]->setUniformValue("model", m_model);
     m_shaderPrograms[m_curr_prog]->setUniformValue("modelView",mview);
     m_shaderPrograms[m_curr_prog]->setUniformValue("normalMatrix",mview.normalMatrix());
+    m_shaderPrograms[m_curr_prog]->setUniformValue("Tex0",0);
+    m_shaderPrograms[m_curr_prog]->setUniformValue("Tex1",1);
     m_shaderPrograms[m_curr_prog]->setUniformValue("lightPos",vec4(1.5,0,2,1.)); //in world coordinates
 
-    if(m_curr_prog==0){
-      updatePolyMode(2);
+    if(m_drawSphere){
       m_sphere->draw(m_shaderPrograms[m_curr_prog]);
+      //m_square->draw(m_shaderProgram);
     }
     else{
-       //m_sphere->draw(m_shaderPrograms[m_curr_prog]);
-       updatePolyMode(2);
-       glPointSize(10);
-       glEnable(GL_POINT_SPRITE);
-       glEnable(GL_BLEND);
-			 glDepthMask(GL_FALSE);
-			 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-       drawFountain();
+      m_square->draw(m_shaderPrograms[m_curr_prog]);
     }
-
     glFlush();
-    m_shaderPrograms[m_curr_prog]->release();
+
     //swapBuffers(); /* not need in QT see QGLWidget::setAutoBufferSwap */
 }
 
@@ -146,14 +120,28 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
         else{glEnable(GL_CULL_FACE);}
         break;
     case Qt::Key_P:
-        m_polyMode = (m_polyMode+1)%3;
-        updatePolyMode(m_polyMode);
+        m_polymode = (m_polymode+1)%3;
+        updatePolyMode(m_polymode);
+        break;
+    case Qt::Key_S:
+        m_drawSphere = !m_drawSphere;
+        break;
+    case Qt::Key_T:
+        m_tex_map = (m_tex_map+1)%2;
+        setTexture();
         break;
     case Qt::Key_V:
         m_curr_prog = (m_curr_prog+1)%CS40_NUM_PROGS;
         break;
-    case Qt::Key_U:
-        updateTime();
+    case Qt::Key_R:
+        if (event->text()=="r"){m_real +=0.01;}
+        else{m_real -= 0.01;}
+        textureReload();
+        break;
+    case Qt::Key_I:
+        if (event->text()=="i"){m_imaginary +=0.01;}
+        else{m_imaginary -= 0.01;}
+        textureReload();
         break;
     default:
         QWidget::keyPressEvent(event); /* pass to base class */
@@ -161,62 +149,13 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
     updateGL();
 }
 
-float MyPanelOpenGL::randFloat(){
-   static int digits = 10000;
-   return (rand() % digits)/(1.*digits);
-}
-
-void MyPanelOpenGL::makeFountain(){
-    //Chapter 9 OpenGL 4.0 GLSL cookbook
-    m_fountain = new QGLBuffer(QGLBuffer::VertexBuffer);
-    bool ok = m_fountain->create();
-    if(!ok){
-        cout << "Unable to create VBO" << endl;
+void MyPanelOpenGL::setTexture(){
+    if (m_tex_map==0){
+        glBindTexture(GL_TEXTURE_2D, m_textureID);
     }
-    m_fountain->setUsagePattern(QGLBuffer::DynamicDraw);
-
-    vec3 v(0,0,0);
-    float velocity, theta, phi;
-    float *data = new float[m_nparticles*3]; //Initial velocities of particles
-    for (int i=0; i<m_nparticles; i++){
-        theta = randFloat()*M_PI/8+0.2;
-        phi = randFloat()*2*M_PI;
-        v.setX(sin(theta)*cos(phi));
-        v.setY(cos(theta));
-        v.setZ(sin(theta)*sin(phi));
-        velocity = 1.25 + 0.25*randFloat();
-        v *= velocity;
-        data[3*i] = v.x();
-        data[3*i+1] = v.y();
-        data[3*i+2] = v.z();
+    else if (m_tex_map==1){
+        glBindTexture(GL_TEXTURE_2D, m_textureID2);
     }
-
-    float *times = new float[m_nparticles]; //Initial start time of particles
-    float time_now = 0, time_step=0.0035;
-    for (int i=0; i<m_nparticles; i++){
-        times[i] = time_now;
-        time_now += time_step;
-    }
-
-    m_fountain->bind();
-    m_fountain->allocate(m_nparticles*(sizeof(vec3)+sizeof(float)));
-    m_fountain->write(0,data,m_nparticles*sizeof(vec3));
-    m_fountain->write(m_nparticles*sizeof(vec3),times,m_nparticles*sizeof(float));
-    m_fountain->release();
-}
-
-void MyPanelOpenGL::drawFountain(){
-    m_fountain->bind();
-    m_shaderPrograms[m_curr_prog]->setUniformValue("vColor",vec4(0.8,0.8,1.,1.));
-    m_shaderPrograms[m_curr_prog]->setUniformValue("vSColor",vec4(1.,1.,1.,1.));
-    m_shaderPrograms[m_curr_prog]->setUniformValue("Tex0",0);
-    m_shaderPrograms[m_curr_prog]->enableAttributeArray("vPosition");
-    m_shaderPrograms[m_curr_prog]->setAttributeBuffer("vPosition",GL_FLOAT,0,3,0);
-    m_shaderPrograms[m_curr_prog]->enableAttributeArray("startTime");
-    m_shaderPrograms[m_curr_prog]->setAttributeBuffer("startTime",GL_FLOAT,m_nparticles*sizeof(vec3),1,0);
-    m_shaderPrograms[m_curr_prog]->setUniformValue("global_time",m_time);
-    glDrawArrays(GL_POINTS, 0, m_nparticles);
-    m_fountain->release();
 }
 
 void MyPanelOpenGL::updateAngles(int idx, qreal amt){
@@ -285,5 +224,57 @@ void MyPanelOpenGL::destroyShaders(int i){
     if(m_shaderPrograms[i]){
         m_shaderPrograms[i]->release();
         delete m_shaderPrograms[i]; m_shaderPrograms[i]=NULL;
+    }
+}
+
+void MyPanelOpenGL::createPBO(){
+    destroyPBO(); //get rid of any old buffer
+
+    //Create PBO
+    int numBytes = sizeof(GLubyte)*4*m_pboSize*m_pboSize;
+    m_pbo = new QGLBuffer(QGLBuffer::PixelUnpackBuffer); //Used for reading Texture data
+    m_pbo->create();
+    m_pbo->bind();
+    m_pbo->allocate(numBytes);
+    m_wrapper.connect(m_pbo->bufferId()); //Inform CUDA about PBO
+
+
+    //Create ID, allocate space for Texture
+    glGenTextures(1,&m_textureID2);
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+
+    // Allocate the texture memory. The last parameter is NULL since we only
+    // want to allocate memory, not initialize it
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_pboSize, m_pboSize, 0,
+                  GL_RGBA,GL_UNSIGNED_BYTE, NULL);
+
+    //int err = glGetError();
+    //cout << err << " " << glewGetErrorString(glGetError()) << endl;
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    // These last two are critical for textures whose dimension are not a power of 2
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+
+    textureReload();
+
+}
+
+void MyPanelOpenGL::textureReload(){
+    // Run CUDA kernel to populate PBO
+    m_wrapper.run(m_real,m_imaginary);
+    //Read Texture data from PBO
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
+                                            GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+}
+
+void MyPanelOpenGL::destroyPBO(){
+    if (m_pbo){
+        m_pbo->release();
+        delete m_pbo; m_pbo=NULL;
     }
 }

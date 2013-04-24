@@ -35,4 +35,5 @@ add_subdirectory(w09-grammar)
 add_subdirectory(w10-particles)
 add_subdirectory(w11-cuda)
 add_subdirectory(w12-cuda)
+add_subdirectory(w13-cuda)
 

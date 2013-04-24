@@ -8,16 +8,16 @@
 #include <QKeyEvent>
 #include <QGLWidget>
 #include <QMatrix4x4>
-#include <QTimer>
 #include "common/sphere.h"
+#include "common/square.h"
+#include "cudahelpers.h"
 
 typedef QVector4D point4;
 typedef QVector4D color4;
 typedef QVector3D vec3;
 typedef QMatrix4x4 mat4;
 
-#define CS40_NUM_PROGS 2
-
+#define CS40_NUM_PROGS 1
 class MyPanelOpenGL : public QGLWidget
 {
     Q_OBJECT
@@ -36,16 +36,22 @@ private:
 
     /* simple test shapes */
     cs40::Sphere* m_sphere;
+    cs40::Square* m_square;
 
-    /* particle fountain VBO */
-    QGLBuffer* m_fountain;
-    int m_nparticles;
-    QTimer* m_timer;
-    float m_time;
-    GLuint m_texture;
+    int m_polymode;
+
+    bool m_drawSphere;
+
+    GLuint m_textureID;
+    GLuint m_textureID2;
+    int m_tex_map;
 
 
-    int m_polyMode;
+    QGLBuffer* m_pbo; /* Pixel Buffer Object */
+    int m_pboSize;
+    MyCUDAWrapper m_wrapper;
+
+    float m_real, m_imaginary;
 
     vec3 m_angles; /* Euler angles for rotation */
 
@@ -59,10 +65,10 @@ private:
     QGLShaderProgram *m_shaderPrograms[CS40_NUM_PROGS];
     int m_curr_prog; //current program ID
 
-    float randFloat();
-    void makeFountain();
-    void drawFountain();
-    void updateTime();
+    //Make sure texture is set based on m_tex_map
+    void setTexture();
+
+    void textureReload(); // run kernel, write texture from PBO
 
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */
@@ -83,10 +89,12 @@ private:
     void createShaders(int i, QString vertName, QString fragName);
     void destroyShaders(int i);
 
+    void createPBO();
+    void destroyPBO();
+
 signals:
     
 public slots:
-    void step();
 
 };
 
