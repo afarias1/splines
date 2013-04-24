@@ -20,9 +20,11 @@ MyPanelOpenGL::MyPanelOpenGL(QWidget *parent) :
     m_drawSphere = true;
     m_polymode = 2;
     m_curr_prog = 0;
-    m_normal_map = 0;
+    m_tex_map = 0;
     m_pbo = NULL;
     m_pboSize = 1000;
+    m_real=-0.8;
+    m_imaginary=0.156;
 }
 
 MyPanelOpenGL::~MyPanelOpenGL(){
@@ -70,6 +72,7 @@ void MyPanelOpenGL::paintGL(){
     /* clear both color and depth buffer */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    setTexture();
     if(!m_shaderPrograms[m_curr_prog]){return;}
     m_shaderPrograms[m_curr_prog]->bind();
     mat4 mview = m_camera*m_model;
@@ -123,14 +126,36 @@ void MyPanelOpenGL::keyPressEvent(QKeyEvent *event)
     case Qt::Key_S:
         m_drawSphere = !m_drawSphere;
         break;
+    case Qt::Key_T:
+        m_tex_map = (m_tex_map+1)%2;
+        setTexture();
+        break;
     case Qt::Key_V:
         m_curr_prog = (m_curr_prog+1)%CS40_NUM_PROGS;
         break;
-
+    case Qt::Key_R:
+        if (event->text()=="r"){m_real +=0.01;}
+        else{m_real -= 0.01;}
+        textureReload();
+        break;
+    case Qt::Key_I:
+        if (event->text()=="i"){m_imaginary +=0.01;}
+        else{m_imaginary -= 0.01;}
+        textureReload();
+        break;
     default:
         QWidget::keyPressEvent(event); /* pass to base class */
     }
     updateGL();
+}
+
+void MyPanelOpenGL::setTexture(){
+    if (m_tex_map==0){
+        glBindTexture(GL_TEXTURE_2D, m_textureID);
+    }
+    else if (m_tex_map==1){
+        glBindTexture(GL_TEXTURE_2D, m_textureID2);
+    }
 }
 
 void MyPanelOpenGL::updateAngles(int idx, qreal amt){
@@ -233,14 +258,18 @@ void MyPanelOpenGL::createPBO(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 
+    textureReload();
+
+}
+
+void MyPanelOpenGL::textureReload(){
     // Run CUDA kernel to populate PBO
-    m_wrapper.run(-0.8,0.156);
+    m_wrapper.run(m_real,m_imaginary);
     //Read Texture data from PBO
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
-    glBindTexture(GL_TEXTURE_2D, m_textureID2);    
+    glBindTexture(GL_TEXTURE_2D, m_textureID2);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
                                             GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-
 }
 
 void MyPanelOpenGL::destroyPBO(){

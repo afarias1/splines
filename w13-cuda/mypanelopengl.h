@@ -39,15 +39,19 @@ private:
     cs40::Square* m_square;
 
     int m_polymode;
-    int m_normal_map;
+
     bool m_drawSphere;
 
     GLuint m_textureID;
     GLuint m_textureID2;
+    int m_tex_map;
+
 
     QGLBuffer* m_pbo; /* Pixel Buffer Object */
     int m_pboSize;
     MyCUDAWrapper m_wrapper;
+
+    float m_real, m_imaginary;
 
     vec3 m_angles; /* Euler angles for rotation */
 
@@ -61,6 +65,10 @@ private:
     QGLShaderProgram *m_shaderPrograms[CS40_NUM_PROGS];
     int m_curr_prog; //current program ID
 
+    //Make sure texture is set based on m_tex_map
+    void setTexture();
+
+    void textureReload(); // run kernel, write texture from PBO
 
     /* update Euler angle at index idx by amt
      * idx=0,1,2 -> x,y,z */
