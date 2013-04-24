@@ -226,7 +226,7 @@ void MyPanelOpenGL::createPBO(){
 
     m_pbo->release();
 
-    m_wrapper.run(0,0);
+    m_wrapper.run(-0.8,0.156);
     swapBuffers();
     m_pbo->bind();
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbo->bufferId());
@@ -250,12 +250,16 @@ void MyPanelOpenGL::createPBO(){
     QImage woot=QGLWidget::convertToGLFormat(QImage("data/earth.png"));
     // Allocate the texture memory. The last parameter is NULL since we only
     // want to allocate memory, not initialize it
-    glTexImage2D( GL_TEXTURE_2D, 0, 4, woot.width(), woot.height(), 0,
-                  GL_BGRA,GL_UNSIGNED_BYTE, woot.bits());
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, m_pboSize, m_pboSize, 0,
+                  GL_RGBA,GL_UNSIGNED_BYTE, NULL);
+    int err = glGetError();
+    cout << err << " " << glewGetErrorString(glGetError()) << endl;
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
-    //                                        GL_RGBA, GL_UNSIGNED_BYTE, buf);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_pboSize, m_pboSize,
+                                            GL_RGBA, GL_UNSIGNED_BYTE, buf);
 
 
     glBindTexture(GL_TEXTURE_2D,m_textureID2);
